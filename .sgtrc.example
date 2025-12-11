@@ -1,0 +1,102 @@
+# ============================================
+# Sergeant Configuration File
+# ============================================
+# Copy this file to ~/.sgtrc and customize
+# Available colors: black, red, green, yellow, blue, magenta, cyan, white
+
+# ============================================
+# ACTIVE THEME - Default
+# ============================================
+directories=cyan
+files=white
+selected_bg=cyan
+selected_fg=black
+header=yellow
+path=green
+git_branch=magenta
+
+# ============================================
+# PREDEFINED THEMES (Uncomment to activate)
+# ============================================
+
+# Gruvbox Theme
+#directories=blue
+#files=white
+#selected_bg=yellow
+#selected_fg=black
+#header=yellow
+#path=green
+#git_branch=red
+
+# Nord Theme
+#directories=cyan
+#files=white
+#selected_bg=blue
+#selected_fg=white
+#header=blue
+#path=cyan
+#git_branch=magenta
+
+# Monokai Theme
+#directories=magenta
+#files=white
+#selected_bg=magenta
+#selected_fg=black
+#header=yellow
+#path=green
+#git_branch=magenta
+
+# Dracula Theme
+#directories=magenta
+#files=white
+#selected_bg=magenta
+#selected_fg=black
+#header=magenta
+#path=cyan
+#git_branch=red
+
+# Solarized Dark
+#directories=blue
+#files=cyan
+#selected_bg=yellow
+#selected_fg=black
+#header=yellow
+#path=blue
+#git_branch=magenta
+
+# High Contrast (Accessibility)
+#directories=green
+#files=white
+#selected_bg=white
+#selected_fg=black
+#header=white
+#path=yellow
+#git_branch=green
+
+# Matrix (Green on Black)
+#directories=green
+#files=green
+#selected_bg=green
+#selected_fg=black
+#header=green
+#path=green
+#git_branch=green
+
+# ============================================
+# BOOKMARKS
+# ============================================
+[bookmarks]
+# Add your favorite directories here
+# Format: name=path
+# You can use ~ for home directory
+
+# Examples:
+#home=~
+#downloads=~/Downloads
+#documents=~/Documents
+#projects=~/projects
+#work=~/work
+#desktop=~/Desktop
+#tmp=/tmp
+#root=/
+

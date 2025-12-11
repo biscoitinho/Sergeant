@@ -4,29 +4,35 @@
 
 require 'curses'
 require 'pathname'
+require 'etc'
+require_relative 'lib/config'
+require_relative 'lib/utils'
+require_relative 'lib/modals'
+require_relative 'lib/rendering'
 
-class Sergeant
+class SergeantApp
   include Curses
+  include Sergeant::Utils
+  include Sergeant::Modals
+  include Sergeant::Rendering
 
   def initialize
     @current_dir = Dir.pwd
     @selected_index = 0
     @scroll_offset = 0
+    @show_ownership = false
+    @config = Sergeant::Config.load_config
+    @bookmarks = Sergeant::Config.load_bookmarks
   end
 
   def run
     init_screen
     start_color
-    curs_set(0)  # Hide cursor
+    curs_set(0)
     noecho
-    stdscr.keypad(true)  # Enable arrow keys!
+    stdscr.keypad(true)
 
-    # Define color pairs
-    init_pair(1, COLOR_CYAN, COLOR_BLACK)    # Directories
-    init_pair(2, COLOR_WHITE, COLOR_BLACK)   # Files (dimmed)
-    init_pair(3, COLOR_BLACK, COLOR_CYAN)    # Selected item
-    init_pair(4, COLOR_YELLOW, COLOR_BLACK)  # Header
-    init_pair(5, COLOR_GREEN, COLOR_BLACK)   # Current path
+    apply_color_theme
 
     begin
       loop do
@@ -39,18 +45,24 @@ class Sergeant
           move_selection(-1)
         when Curses::Key::DOWN, 'j'
           move_selection(1)
-        when 10, 13, Curses::Key::RIGHT, 'l'  # Enter or Right - navigate into directory
+        when 10, 13, Curses::Key::RIGHT, 'l'
           item = @items[@selected_index]
           if item && item[:type] == :directory
             @current_dir = item[:path]
             @selected_index = 0
             @scroll_offset = 0
           end
-        when 'q', 27  # q or ESC - select current directory and exit
+        when 'b'
+          goto_bookmark
+        when 'o'
+          @show_ownership = !@show_ownership
+        when '/'
+          search_files
+        when 'q', 27
           close_screen
           puts @current_dir
           exit 0
-        when Curses::Key::LEFT, 'h'  # Left or h - go up one directory
+        when Curses::Key::LEFT, 'h'
           parent = File.dirname(@current_dir)
           if parent != @current_dir
             @current_dir = parent
@@ -72,151 +84,128 @@ class Sergeant
 
   private
 
+  def apply_color_theme
+    init_pair(1, Sergeant::Config.get_color(@config['directories']), Curses::COLOR_BLACK)
+    init_pair(2, Sergeant::Config.get_color(@config['files']), Curses::COLOR_BLACK)
+    init_pair(3, Sergeant::Config.get_color(@config['selected_fg']),
+                 Sergeant::Config.get_color(@config['selected_bg']))
+    init_pair(4, Sergeant::Config.get_color(@config['header']), Curses::COLOR_BLACK)
+    init_pair(5, Sergeant::Config.get_color(@config['path']), Curses::COLOR_BLACK)
+    init_pair(6, Sergeant::Config.get_color(@config['git_branch']), Curses::COLOR_BLACK)
+  end
+
+  def search_files
+    close_screen
+    
+    if fzf_available?
+      selected = `find "#{@current_dir}" -type f -o -type d 2>/dev/null | fzf --height=40% --reverse --prompt="Search: " --preview="ls -lah {}" --preview-window=right:50%`.strip
+    else
+      puts "fzf not found - using fallback search"
+      print "Search (regex): "
+      query = gets.chomp
+      
+      if query.empty?
+        selected = nil
+      else
+        results = `find "#{@current_dir}" 2>/dev/null | grep -i "#{query}"`.split("\n")
+        
+        if results.empty?
+          puts "No results found. Press Enter to continue..."
+          gets
+          selected = nil
+        elsif results.length == 1
+          selected = results.first
+        else
+          puts "\nResults:"
+          results.first(20).each_with_index do |result, idx|
+            puts "#{idx + 1}. #{result}"
+          end
+          puts "..." if results.length > 20
+          print "\nSelect number (or Enter to cancel): "
+          choice = gets.chomp
+          selected = choice.empty? ? nil : results[choice.to_i - 1]
+        end
+      end
+    end
+    
+    init_screen
+    start_color
+    curs_set(0)
+    noecho
+    stdscr.keypad(true)
+    apply_color_theme
+    
+    if selected && !selected.empty?
+      if File.directory?(selected)
+        @current_dir = selected
+      else
+        @current_dir = File.dirname(selected)
+      end
+      @selected_index = 0
+      @scroll_offset = 0
+    end
+  end
+
   def refresh_items
     entries = Dir.entries(@current_dir).reject { |e| e == '.' }
 
     @items = []
 
-    # Add parent directory entry if not at root
     unless @current_dir == '/'
       @items << {
         name: '..',
         type: :directory,
-        path: File.dirname(@current_dir)
+        path: File.dirname(@current_dir),
+        size: nil,
+        mtime: nil,
+        owner: nil,
+        perms: nil
       }
     end
 
-    # Separate directories and files
     directories = []
     files = []
 
     entries.each do |entry|
       full_path = File.join(@current_dir, entry)
       begin
-        if File.directory?(full_path)
+        stat = File.stat(full_path)
+        owner_info = get_owner_info(stat)
+        is_dir = File.directory?(full_path)
+        perms = format_permissions(stat.mode, is_dir)
+        
+        if is_dir
           directories << {
             name: entry,
             type: :directory,
-            path: File.absolute_path(full_path)
+            path: File.absolute_path(full_path),
+            size: stat.size,
+            mtime: stat.mtime,
+            owner: owner_info,
+            perms: perms
           }
         else
           files << {
             name: entry,
             type: :file,
-            path: File.absolute_path(full_path)
+            path: File.absolute_path(full_path),
+            size: stat.size,
+            mtime: stat.mtime,
+            owner: owner_info,
+            perms: perms
           }
         end
       rescue Errno::EACCES, Errno::ENOENT
-        # Skip files we can't access
       end
     end
 
-    # Sort and combine: directories first, then files
     directories.sort_by! { |d| d[:name].downcase }
     files.sort_by! { |f| f[:name].downcase }
 
     @items += directories + files
 
-    # Adjust selection if out of bounds
     @selected_index = [@selected_index, @items.length - 1].min
     @selected_index = 0 if @selected_index < 0
-  end
-
-  def draw_screen
-    clear
-
-    max_y = lines - 1
-    max_x = cols
-
-    # Draw header
-    setpos(0, 0)
-    attron(color_pair(4) | A_BOLD) do
-      addstr("┌─ Sergeant Navigator ".ljust(max_x, '─'))
-    end
-
-    # Draw current path
-    setpos(1, 0)
-    attron(color_pair(5)) do
-      path_display = @current_dir.length > max_x - 4 ? "...#{@current_dir[-max_x+7..-1]}" : @current_dir
-      addstr("│ #{path_display}".ljust(max_x))
-    end
-
-    # Draw separator
-    setpos(2, 0)
-    attron(color_pair(4)) do
-      addstr("├".ljust(max_x, '─'))
-    end
-
-    # Draw help line
-    setpos(max_y, 0)
-    attron(color_pair(4)) do
-      help = "↑↓/jk:Move  Enter/→l:Open  ←h:Back  q/ESC:Select"
-      addstr("└─ #{help}".ljust(max_x, ' '))
-    end
-
-    # Calculate visible area
-    visible_lines = max_y - 4  # Subtract header, path, separator, and footer
-
-    # Adjust scroll offset
-    if @selected_index < @scroll_offset
-      @scroll_offset = @selected_index
-    elsif @selected_index >= @scroll_offset + visible_lines
-      @scroll_offset = @selected_index - visible_lines + 1
-    end
-
-    # Draw items
-    visible_items = @items[@scroll_offset, visible_lines] || []
-    visible_items.each_with_index do |item, idx|
-      line_num = idx + 3
-      actual_index = @scroll_offset + idx
-
-      setpos(line_num, 0)
-
-      is_selected = actual_index == @selected_index
-
-      if is_selected
-        attron(color_pair(3) | A_BOLD) do
-          draw_item(item, max_x, true)
-        end
-      else
-        if item[:type] == :directory
-          attron(color_pair(1)) do
-            draw_item(item, max_x, false)
-          end
-        else
-          attron(color_pair(2) | A_DIM) do
-            draw_item(item, max_x, false)
-          end
-        end
-      end
-    end
-
-    # Draw scrollbar indicator if needed
-    if @items.length > visible_lines
-      total = @items.length
-      visible = visible_lines
-      scroll_pos = (@scroll_offset.to_f / (total - visible)) * (visible - 1)
-      scroll_pos = scroll_pos.round.clamp(0, visible - 1)
-
-      setpos(3 + scroll_pos, max_x - 1)
-      attron(color_pair(4) | A_BOLD) do
-        addstr("█")
-      end
-    end
-
-    refresh
-  end
-
-  def draw_item(item, max_x, is_selected)
-    icon = item[:type] == :directory ? "📁 " : "📄 "
-    prefix = is_selected ? "▶ " : "  "
-
-    # Calculate available space
-    available = max_x - prefix.length - icon.length - 1
-    name = item[:name].length > available ? "#{item[:name][0...available-3]}..." : item[:name]
-
-    display = "#{prefix}#{icon}#{name}".ljust(max_x)
-    addstr(display)
   end
 
   def move_selection(delta)
@@ -227,5 +216,5 @@ class Sergeant
 end
 
 # Run the navigator
-Sergeant.new.run
+SergeantApp.new.run
 

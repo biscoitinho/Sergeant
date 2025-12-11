@@ -23,20 +23,19 @@ if ! command -v ruby &> /dev/null; then
     echo "   Please install Ruby first:"
     echo "   - macOS: brew install ruby"
     echo "   - Linux: sudo apt-get install ruby (Debian/Ubuntu)"
-    echo "           sudo yum install ruby (RHEL/CentOS)"
     exit 1
 fi
 
 RUBY_VERSION=$(ruby -v)
 echo "✅ Ruby found: $RUBY_VERSION"
 
-# Check if curses gem is available (usually part of stdlib)
+# Check if curses gem is available
 if ! ruby -e "require 'curses'" 2>/dev/null; then
     echo "⚠️  Warning: Ruby curses library not found"
     echo "   Attempting to install..."
 
     if [[ "$PLATFORM" == "Linux" ]]; then
-        echo "   You may need to install: sudo apt-get install libncurses-dev"
+        echo "   You may need to install: sudo apt-get install libncurses-dev ruby-dev"
     fi
 
     gem install curses || {
@@ -45,6 +44,13 @@ if ! ruby -e "require 'curses'" 2>/dev/null; then
         echo "   On macOS, curses should be available by default"
         exit 1
     }
+fi
+
+# Check if we need to build
+if [ ! -f "sgt" ] || [ "sgt.rb" -nt "sgt" ]; then
+    echo ""
+    echo "🔨 Building single file executable..."
+    ruby build.rb
 fi
 
 echo ""
@@ -72,8 +78,8 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Copy and make executable
-echo "📋 Copying sgt.rb to $INSTALL_DIR/sgt..."
-$SUDO cp "$SCRIPT_DIR/sgt.rb" "$INSTALL_DIR/sgt"
+echo "📋 Copying sgt to $INSTALL_DIR/sgt..."
+$SUDO cp "$SCRIPT_DIR/sgt" "$INSTALL_DIR/sgt"
 $SUDO chmod +x "$INSTALL_DIR/sgt"
 
 echo "✅ Binary installed"
@@ -83,6 +89,29 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     echo "⚠️  Warning: $INSTALL_DIR is not in your PATH"
     echo "   Add this line to your shell config:"
     echo "   export PATH=\"$INSTALL_DIR:\$PATH\""
+fi
+
+# Handle config file
+CONFIG_FILE="$HOME/.sgtrc"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo ""
+    echo "📝 Config file setup:"
+    read -p "   Create config from example? [Y/n]: " CREATE_CONFIG
+    CREATE_CONFIG=${CREATE_CONFIG:-Y}
+    
+    if [[ "$CREATE_CONFIG" =~ ^[Yy]$ ]]; then
+        if [ -f "$SCRIPT_DIR/.sgtrc.example" ]; then
+            cp "$SCRIPT_DIR/.sgtrc.example" "$CONFIG_FILE"
+            echo "   ✓ Created ~/.sgtrc from example"
+        else
+            echo "   ⚠️  .sgtrc.example not found, minimal config will be auto-created on first run"
+        fi
+    else
+        echo "   ⊘ Skipped - minimal config will be auto-created on first run"
+    fi
+else
+    echo ""
+    echo "📝 Config: Using existing ~/.sgtrc"
 fi
 
 # Create shell function
@@ -114,7 +143,6 @@ add_shell_integration() {
     local shell_name=$2
 
     if [ -f "$shell_config" ]; then
-        # Check if already installed
         if grep -q "# Sergeant - Interactive directory navigator" "$shell_config" 2>/dev/null; then
             echo "   ✓ $shell_name: Already configured"
             return 0
@@ -135,32 +163,11 @@ add_shell_integration() {
     return 2
 }
 
-# Try to configure detected shell
-CONFIGURED=false
-
+# Configure shell
 if [[ "$USER_SHELL" == "bash" ]]; then
-    add_shell_integration "$HOME/.bashrc" "Bash" && CONFIGURED=true
+    add_shell_integration "$HOME/.bashrc" "Bash"
 elif [[ "$USER_SHELL" == "zsh" ]]; then
-    add_shell_integration "$HOME/.zshrc" "Zsh" && CONFIGURED=true
-fi
-
-# Offer to configure other shells
-echo ""
-read -p "   Configure for other shells? [y/N]: " CONFIG_OTHER
-if [[ "$CONFIG_OTHER" =~ ^[Yy]$ ]]; then
-    [ -f "$HOME/.bashrc" ] && add_shell_integration "$HOME/.bashrc" "Bash"
-    [ -f "$HOME/.zshrc" ] && add_shell_integration "$HOME/.zshrc" "Zsh"
-    [ -f "$HOME/.config/fish/config.fish" ] && {
-        echo "   ⚠️  Fish shell detected - manual configuration needed"
-        echo "      Add this to ~/.config/fish/config.fish:"
-        echo "      function sgt"
-        echo "          set selected_dir (command sgt 2>/dev/null)"
-        echo "          if test -n \"\$selected_dir\" -a -d \"\$selected_dir\""
-        echo "              cd \"\$selected_dir\""
-        echo "              ls -lah"
-        echo "          end"
-        echo "      end"
-    }
+    add_shell_integration "$HOME/.zshrc" "Zsh"
 fi
 
 echo ""
@@ -170,15 +177,15 @@ echo "🎖️  Usage:"
 echo "   1. Restart your shell or run: source ~/.bashrc (or ~/.zshrc)"
 echo "   2. Type 'sgt' in any directory"
 echo "   3. Use arrow keys (↑↓) or j/k to navigate"
-echo "   4. Press Enter to cd into a directory"
-echo "   5. Press 'h' to go up one level"
-echo "   6. Press 'l' or Space to enter a directory"
-echo "   7. Press 'q' or ESC to quit"
+echo "   4. Press Enter to open directory"
+echo "   5. Press 'b' for bookmarks"
+echo "   6. Press 'o' to toggle ownership view"
+echo "   7. Press '/' to search with fzf"
+echo "   8. Press 'q' or ESC to select current directory"
 echo ""
-echo "📚 Tips:"
-echo "   - Files are shown but grayed out (future: execution support)"
-echo "   - Works in any directory you navigate to"
-echo "   - After selecting, it will cd and show contents"
+echo "📝 Configuration:"
+echo "   Edit ~/.sgtrc to customize colors and bookmarks"
+echo "   See .sgtrc.example for all available themes"
 echo ""
 echo "🚀 Try it now: sgt"
 echo ""
