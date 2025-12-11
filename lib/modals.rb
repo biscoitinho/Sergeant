@@ -308,6 +308,59 @@ module Sergeant
       refresh
       getch
     end
+
+    def preview_file
+      item = @items[@selected_index]
+
+      # Only preview files, not directories
+      return unless item && item[:type] == :file
+
+      file_path = item[:path]
+
+      # Check if it's a text file
+      unless text_file?(file_path)
+        show_error_modal("Cannot preview: Not a text file or too large (>50MB)")
+        return
+      end
+
+      # Close curses screen temporarily
+      close_screen
+
+      begin
+        file_ext = File.extname(file_path).downcase
+
+        # Use glow for markdown files if available, otherwise fall back to less
+        if file_ext == '.md' && glow_available?
+          system("glow -p \"#{file_path}\"")
+        elsif file_ext == '.md'
+          system("less -R -F -X \"#{file_path}\"")
+        else
+          # For all other text files, use vim/vi/nano
+          if vim_available?
+            system("vim -R \"#{file_path}\"")
+          elsif vi_available?
+            system("vi -R \"#{file_path}\"")
+          elsif nano_available?
+            system("nano -v \"#{file_path}\"")
+          else
+            # Ultimate fallback to less
+            system("less -R -F -X \"#{file_path}\"")
+          end
+        end
+      rescue => e
+        puts "Error previewing file: #{e.message}"
+        puts "Press Enter to continue..."
+        gets
+      end
+
+      # Restore curses screen
+      init_screen
+      start_color
+      curs_set(0)
+      noecho
+      stdscr.keypad(true)
+      apply_color_theme
+    end
   end
 end
 

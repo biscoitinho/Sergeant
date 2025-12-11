@@ -51,11 +51,15 @@ class SergeantApp
             @current_dir = item[:path]
             @selected_index = 0
             @scroll_offset = 0
+          elsif item && item[:type] == :file
+            preview_file
           end
         when 'b'
           goto_bookmark
         when 'o'
           @show_ownership = !@show_ownership
+        when 'v'
+          preview_file
         when '/'
           search_files
         when 'q', 27

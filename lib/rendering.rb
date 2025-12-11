@@ -42,7 +42,7 @@ module Sergeant
 
       setpos(max_y, 0)
       attron(color_pair(4)) do
-        help = "↑↓/jk:Move  Enter/→l:Open  ←h:Back  /:Search  b:Bookmark  o:Owner  q/ESC:Select"
+        help = "↑↓/jk:Move  Enter/v/→l:Open/Preview  ←h:Back  /:Search  b:Bookmark  o:Owner  q/ESC:Select"
         addstr("└─ #{help}".ljust(max_x, ' '))
       end
 
