@@ -2,30 +2,45 @@
 
 ![Sergeant Logo](./logo.svg)
 
-**Interactive TUI Directory Navigator for Terminal**
+**Interactive TUI Directory Navigator for Terminal - "Leave it to the Sarge!"**
 
-Sergeant is a lightweight, interactive terminal user interface (TUI) for navigating directories. Instead of typing `cd` commands, just run `sgt`, use arrow keys to select a directory, and press Enter. Simple, fast, and elegant.
+Sergeant is a feature-rich, interactive terminal user interface (TUI) for navigating directories and managing files. Instead of typing `cd` and file manipulation commands, just run `sgt`, use arrow keys and keyboard shortcuts to navigate, preview, copy, move, and organize your files. Simple, fast, and elegant.
 
 ## ✨ Features
 
+### Navigation & Display
 - 🗂️  **Visual Directory Navigation** - See all directories and files at a glance
 - ⌨️  **Keyboard Driven** - Arrow keys, vim bindings (hjkl), and shortcuts
 - 🎨 **Color-Coded Display** - Directories in cyan, files grayed out
 - 📊 **Smart Scrolling** - Handles directories with hundreds of items
-- 🔍 **Parent Navigation** - Quickly move up directory levels with `h`
+- 🔍 **Git Branch Display** - Shows current git branch in header
+- 👤 **Ownership Toggle** - View file permissions and ownership (press 'o')
+- 📑 **Bookmarks** - Save and quickly navigate to favorite directories
+
+### File Operations
+- 📋 **Copy/Cut/Paste** - Mark files with spacebar, copy (c), cut (x), and paste (p)
+- ✂️  **Multi-file Selection** - Mark multiple files/folders for batch operations
+- 🗑️  **Delete with Confirmation** - Safe deletion with confirmation dialog
+- ✏️  **Rename** - Rename files and folders with pre-filled input
+- 🔄 **Conflict Resolution** - Smart handling of file conflicts (skip/overwrite/rename)
+- 📄 **File Preview** - View markdown files with glow, code files with vim/nano
+
+### Search & Productivity
+- 🔎 **Fuzzy Search** - Integrate with fzf for fast file finding
+- ❓ **Help Modal** - Press 'm' for comprehensive key mapping reference
 - 🚀 **Instant CD** - Select and change directory in one smooth motion
-- 🍎 **Cross-Platform** - Works on macOS and Linux
-- 💎 **Pure Ruby** - No external dependencies (uses stdlib curses)
 
 ## 📋 Requirements
 
-- **Ruby** 2.5 or higher (Ruby 3.x supported)
-- **curses gem**
-  - Ruby 2.x: Usually included in stdlib
-  - Ruby 3.x: Install with `gem install curses` (installer handles this)
+- **Ruby** 2.7 or higher (Ruby 3.x recommended)
+- **Bundler** - For dependency management
 - **ncurses library** (system dependency)
   - macOS: Included by default
   - Linux: `sudo apt-get install libncurses-dev` (if needed)
+
+### Optional Tools
+- **glow** - For beautiful markdown preview (`brew install glow` or `go install github.com/charmbracelet/glow@latest`)
+- **fzf** - For fuzzy file search (`brew install fzf` or `sudo apt-get install fzf`)
 
 ## 🚀 Installation
 
@@ -33,5 +48,158 @@ Sergeant is a lightweight, interactive terminal user interface (TUI) for navigat
 
 ```bash
 cd sergeant
-./install.sh
 
+# Install dependencies
+bundle install
+
+# Run the installer
+./install.sh
+```
+
+The installer will:
+1. Install the curses gem (if needed)
+2. Create the executable script `~/.local/bin/sgt`
+3. Make it executable and add to your PATH
+
+### Manual Installation
+
+If you prefer manual installation:
+
+```bash
+# Install dependencies
+bundle install
+
+# Copy to your bin directory
+cp sgt.rb ~/.local/bin/sgt
+chmod +x ~/.local/bin/sgt
+```
+
+## 🎮 Usage
+
+### Basic Navigation
+
+```bash
+# Start sergeant in current directory
+sgt
+
+# Navigate and select
+# Arrow keys or j/k to move up/down
+# Enter or l to enter directory
+# h to go back
+# q to quit and cd to selected directory
+```
+
+### File Operations
+
+| Key | Action |
+|-----|--------|
+| `Space` | Mark/unmark item for operations |
+| `c` | Copy marked items |
+| `x` | Cut marked items |
+| `p` | Paste copied/cut items |
+| `d` | Delete marked items (with confirmation) |
+| `r` | Rename current item |
+| `u` | Unmark all items |
+| `v` | Preview file (markdown/code) |
+
+### Other Commands
+
+| Key | Action |
+|-----|--------|
+| `↑/k` | Move up |
+| `↓/j` | Move down |
+| `Enter/→/l` | Open directory or preview file |
+| `←/h` | Go to parent directory |
+| `o` | Toggle ownership/permissions display |
+| `b` | Go to bookmark |
+| `/` | Search files (requires fzf) |
+| `m` | Show help modal with all key mappings |
+| `q/ESC` | Quit and cd to current directory |
+
+## ⚙️ Configuration
+
+Create a `~/.sgtrc` file to customize colors and bookmarks:
+
+```ini
+# Color theme (available: black, red, green, yellow, blue, magenta, cyan, white)
+[colors]
+directories=cyan
+files=white
+selected_bg=blue
+selected_fg=black
+header=yellow
+path=green
+git_branch=magenta
+
+# Bookmarks
+[bookmarks]
+home=/home/user
+projects=~/projects
+documents=~/Documents
+```
+
+## 🧪 Development
+
+### Running Tests
+
+```bash
+# Install development dependencies
+bundle install
+
+# Run all tests
+bundle exec rspec
+
+# Run specific test file
+bundle exec rspec spec/utils_spec.rb
+
+# Run with documentation format
+bundle exec rspec --format documentation
+```
+
+### Code Quality
+
+```bash
+# Run rubocop linter
+bundle exec rubocop
+
+# Auto-correct issues
+bundle exec rubocop -A
+```
+
+### Project Structure
+
+```
+sergeant/
+├── sgt.rb              # Main application entry point
+├── lib/
+│   ├── config.rb       # Configuration and bookmark management
+│   ├── utils.rb        # Utility functions (formatting, file detection)
+│   ├── rendering.rb    # UI rendering and display logic
+│   └── modals/         # Modal dialog modules
+│       ├── navigation.rb     # Bookmark navigation
+│       ├── dialogs.rb        # Info/error/confirmation dialogs
+│       ├── file_operations.rb # File preview, copy, paste, delete, rename
+│       └── help.rb           # Help modal with key mappings
+├── spec/               # RSpec test suite
+├── Gemfile             # Ruby dependencies
+└── README.md           # This file
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📝 License
+
+[Add your license here]
+
+## 🙏 Acknowledgments
+
+- Built with Ruby and ncurses
+- Inspired by terminal file managers like ranger and nnn
+- Uses [glow](https://github.com/charmbracelet/glow) for markdown rendering
+- Integrates with [fzf](https://github.com/junegunn/fzf) for fuzzy finding
+
+---
+
+**"Leave it to the Sarge!"** 🎖️

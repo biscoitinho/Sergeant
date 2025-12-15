@@ -1,0 +1,70 @@
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+
+# Disable documentation requirement - not needed for small utility projects
+Style/Documentation:
+  Enabled: false
+
+# Relax method length limits for TUI code with lots of drawing commands
+Metrics/MethodLength:
+  Max: 75
+  Exclude:
+    - 'lib/modals/**/*'
+    - 'lib/rendering.rb'
+
+# Relax ABC size for complex UI methods (especially modals with lots of drawing)
+Metrics/AbcSize:
+  Max: 55
+  Exclude:
+    - 'lib/modals/**/*'
+    - 'lib/rendering.rb'
+
+# Relax complexity for UI code with lots of conditionals
+Metrics/CyclomaticComplexity:
+  Max: 25
+
+Metrics/PerceivedComplexity:
+  Max: 25
+
+# Relax block length for UI code (main event loop) and test files
+Metrics/BlockLength:
+  Max: 55
+  Exclude:
+    - 'lib/modals/**/*'
+    - 'spec/**/*'
+
+# Relax module length for UI modules
+Metrics/ModuleLength:
+  Max: 350
+
+# Relax class length
+Metrics/ClassLength:
+  Max: 300
+
+# Allow longer lines for UI code with lots of formatting
+Layout/LineLength:
+  Max: 150
+
+# Block nesting is acceptable in UI code
+Metrics/BlockNesting:
+  Max: 4
+
+# Allow duplicate branches in modals (often needed for ESC key handling)
+Lint/DuplicateBranch:
+  Enabled: false
+
+# Suppress warning about suppressed exceptions - intentional for permission errors
+Lint/SuppressedException:
+  Exclude:
+    - 'sgt.rb'
+
+# Allow get_ prefix for methods that don't just return instance variables
+Naming/AccessorMethodName:
+  Enabled: false
+
+# Allow methods that look like predicates but don't return boolean
+Naming/PredicateMethod:
+  Enabled: false
