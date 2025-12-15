@@ -25,7 +25,7 @@ module Sergeant
       'git_branch' => 'magenta'
     }.freeze
 
-    MINIMAL_CONFIG_TEMPLATE = <<~CONFIG
+    MINIMAL_CONFIG_TEMPLATE = <<~CONFIG.freeze
       # Sergeant Configuration File
       # Color theme (available: black, red, green, yellow, blue, magenta, cyan, white)
       directories=cyan
@@ -91,7 +91,7 @@ module Sergeant
 
         next if line.empty? || line.start_with?('#')
 
-        next unless in_bookmark_section || line.include?('=')
+        next unless in_bookmark_section && line.include?('=')
 
         key, value = line.split('=', 2)
         next unless key && value

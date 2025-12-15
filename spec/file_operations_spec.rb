@@ -11,7 +11,7 @@ require_relative '../lib/modals/file_operations'
 class FileOperationsTestClass
   include Sergeant::Modals::FileOperations
 
-  attr_accessor :marked_items, :copied_items, :cut_mode, :items, :selected_index
+  attr_accessor :marked_items, :copied_items, :cut_mode, :items, :selected_index, :current_dir
 
   def initialize
     @marked_items = []
@@ -19,6 +19,7 @@ class FileOperationsTestClass
     @cut_mode = false
     @items = []
     @selected_index = 0
+    @current_dir = nil
   end
 
   # Mock curses methods
@@ -88,6 +89,7 @@ RSpec.describe Sergeant::Modals::FileOperations do
 
         test_obj.marked_items = [source_file]
         test_obj.copied_items = [source_file]
+        test_obj.current_dir = dir
 
         # Call paste_with_modal which should clear items
         allow(test_obj).to receive(:show_info_modal)
@@ -105,6 +107,7 @@ RSpec.describe Sergeant::Modals::FileOperations do
 
         test_obj.cut_mode = true
         test_obj.copied_items = [source_file]
+        test_obj.current_dir = dir
 
         allow(test_obj).to receive(:show_info_modal)
         test_obj.paste_with_modal
