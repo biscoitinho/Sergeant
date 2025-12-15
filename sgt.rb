@@ -23,6 +23,9 @@ class SergeantApp
     @show_ownership = false
     @config = Sergeant::Config.load_config
     @bookmarks = Sergeant::Config.load_bookmarks
+    @marked_items = []
+    @copied_items = []
+    @cut_mode = false
   end
 
   def run
@@ -51,11 +54,31 @@ class SergeantApp
             @current_dir = item[:path]
             @selected_index = 0
             @scroll_offset = 0
+          elsif item && item[:type] == :file
+            preview_file
           end
         when 'b'
           goto_bookmark
         when 'o'
           @show_ownership = !@show_ownership
+        when 'v'
+          preview_file
+        when 32, ' '
+          toggle_mark
+        when 'c'
+          copy_marked_items
+        when 'x'
+          cut_marked_items
+        when 'd'
+          delete_marked_items
+        when 'r'
+          rename_item
+        when 'p'
+          paste_items
+        when 'u'
+          unmark_all
+        when 'm'
+          show_help_modal
         when '/'
           search_files
         when 'q', 27
@@ -212,6 +235,59 @@ class SergeantApp
     return if @items.empty?
 
     @selected_index = (@selected_index + delta).clamp(0, @items.length - 1)
+  end
+
+  def toggle_mark
+    item = @items[@selected_index]
+    return unless item && item[:name] != '..'
+
+    path = item[:path]
+    if @marked_items.include?(path)
+      @marked_items.delete(path)
+    else
+      @marked_items << path
+    end
+  end
+
+  def copy_marked_items
+    return if @marked_items.empty?
+
+    @copied_items = @marked_items.dup
+    @cut_mode = false
+    show_info_modal("#{@copied_items.length} item(s) copied")
+  end
+
+  def cut_marked_items
+    return if @marked_items.empty?
+
+    @copied_items = @marked_items.dup
+    @cut_mode = true
+    show_info_modal("#{@copied_items.length} item(s) cut")
+  end
+
+  def unmark_all
+    @marked_items.clear
+  end
+
+  def delete_marked_items
+    return if @marked_items.empty?
+
+    if confirm_delete_modal(@marked_items.length)
+      delete_with_modal
+    end
+  end
+
+  def rename_item
+    item = @items[@selected_index]
+    return unless item && item[:name] != '..'
+
+    rename_with_modal(item)
+  end
+
+  def paste_items
+    return if @copied_items.empty?
+
+    paste_with_modal
   end
 end
 
