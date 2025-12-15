@@ -77,6 +77,39 @@ module Sergeant
     def fzf_available?
       system('command -v fzf > /dev/null 2>&1')
     end
+
+    def glow_available?
+      system('command -v glow > /dev/null 2>&1')
+    end
+
+    def vim_available?
+      system('command -v vim > /dev/null 2>&1')
+    end
+
+    def vi_available?
+      system('command -v vi > /dev/null 2>&1')
+    end
+
+    def nano_available?
+      system('command -v nano > /dev/null 2>&1')
+    end
+
+    def text_file?(file_path)
+      return false unless File.file?(file_path)
+      return false unless File.readable?(file_path)
+
+      # Check file size - limit to 50MB for safety
+      return false if File.size(file_path) > 50 * 1024 * 1024
+
+      # Check if it's a binary file by reading first 8KB
+      File.open(file_path, 'rb') do |f|
+        sample = f.read(8192) || ''
+        # Check for null bytes (common in binary files)
+        !sample.bytes.include?(0)
+      end
+    rescue
+      false
+    end
   end
 end
 
