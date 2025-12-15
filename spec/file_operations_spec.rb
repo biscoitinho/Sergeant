@@ -24,6 +24,7 @@ class FileOperationsTestClass
   # Mock curses methods
   def show_error_modal(_message); end
   def show_info_modal(_message); end
+
   def ask_conflict_resolution(_filename)
     :skip
   end

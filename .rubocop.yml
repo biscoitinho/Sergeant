@@ -29,11 +29,12 @@ Metrics/CyclomaticComplexity:
 Metrics/PerceivedComplexity:
   Max: 25
 
-# Relax block length for UI code (main event loop)
+# Relax block length for UI code (main event loop) and test files
 Metrics/BlockLength:
   Max: 55
   Exclude:
     - 'lib/modals/**/*'
+    - 'spec/**/*'
 
 # Relax module length for UI modules
 Metrics/ModuleLength:

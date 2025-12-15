@@ -154,7 +154,7 @@ RSpec.describe Sergeant::Utils do
     end
 
     it 'returns uid as string for unknown user' do
-      stat = double('stat', uid: 99999, gid: 99999)
+      stat = double('stat', uid: 99_999, gid: 99_999)
       result = utils.get_owner_info(stat)
       expect(result).to eq('99999:99999')
     end
