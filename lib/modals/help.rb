@@ -59,7 +59,7 @@ module Sergeant
           '  u                 - Unmark all items',
           '',
           'Other:',
-          '  v                 - Preview file (markdown with glow, code with vim)',
+          '  v                 - Preview file (glow for md, vim for code)',
           '  o                 - Toggle ownership display',
           '  b                 - Go to bookmark',
           '  /                 - Search files (with fzf if available)',
