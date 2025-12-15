@@ -19,8 +19,9 @@ RSpec.describe Sergeant::Config do
         directories=green
       CONFIG
 
-      allow(File).to receive(:exist?).with(File.expand_path('~/.sgtrc')).and_return(true)
-      allow(File).to receive(:read).with(File.expand_path('~/.sgtrc')).and_return(config_content)
+      config_file = File.join(Dir.home, '.sgtrc')
+      allow(File).to receive(:exist?).with(config_file).and_return(true)
+      allow(File).to receive(:readlines).with(config_file).and_return(config_content.lines)
 
       config = described_class.load_config
       expect(config['directories']).to eq('green')
@@ -28,11 +29,12 @@ RSpec.describe Sergeant::Config do
     end
 
     it 'handles invalid config gracefully' do
-      allow(File).to receive(:exist?).with(File.expand_path('~/.sgtrc')).and_return(true)
-      allow(File).to receive(:read).with(File.expand_path('~/.sgtrc')).and_raise(StandardError)
+      config_file = File.join(Dir.home, '.sgtrc')
+      allow(File).to receive(:exist?).with(config_file).and_return(true)
+      allow(File).to receive(:readlines).with(config_file).and_raise(StandardError)
 
       config = described_class.load_config
-      expect(config).to eq(described_class.default_config)
+      expect(config).to eq(described_class::DEFAULT_CONFIG)
     end
   end
 
@@ -50,8 +52,9 @@ RSpec.describe Sergeant::Config do
         projects=/home/user/projects
       CONFIG
 
-      allow(File).to receive(:exist?).with(File.expand_path('~/.sgtrc')).and_return(true)
-      allow(File).to receive(:read).with(File.expand_path('~/.sgtrc')).and_return(config_content)
+      config_file = File.join(Dir.home, '.sgtrc')
+      allow(File).to receive(:exist?).with(config_file).and_return(true)
+      allow(File).to receive(:readlines).with(config_file).and_return(config_content.lines)
 
       bookmarks = described_class.load_bookmarks
       expect(bookmarks).to eq({
@@ -66,8 +69,9 @@ RSpec.describe Sergeant::Config do
         home=~/Documents
       CONFIG
 
-      allow(File).to receive(:exist?).with(File.expand_path('~/.sgtrc')).and_return(true)
-      allow(File).to receive(:read).with(File.expand_path('~/.sgtrc')).and_return(config_content)
+      config_file = File.join(Dir.home, '.sgtrc')
+      allow(File).to receive(:exist?).with(config_file).and_return(true)
+      allow(File).to receive(:readlines).with(config_file).and_return(config_content.lines)
 
       bookmarks = described_class.load_bookmarks
       expect(bookmarks['home']).to eq(File.expand_path('~/Documents'))
@@ -81,8 +85,9 @@ RSpec.describe Sergeant::Config do
         projects=/home/user/projects
       CONFIG
 
-      allow(File).to receive(:exist?).with(File.expand_path('~/.sgtrc')).and_return(true)
-      allow(File).to receive(:read).with(File.expand_path('~/.sgtrc')).and_return(config_content)
+      config_file = File.join(Dir.home, '.sgtrc')
+      allow(File).to receive(:exist?).with(config_file).and_return(true)
+      allow(File).to receive(:readlines).with(config_file).and_return(config_content.lines)
 
       bookmarks = described_class.load_bookmarks
       expect(bookmarks.keys).to contain_exactly('home', 'projects')
@@ -95,8 +100,9 @@ RSpec.describe Sergeant::Config do
         [bookmarks]
       CONFIG
 
-      allow(File).to receive(:exist?).with(File.expand_path('~/.sgtrc')).and_return(true)
-      allow(File).to receive(:read).with(File.expand_path('~/.sgtrc')).and_return(config_content)
+      config_file = File.join(Dir.home, '.sgtrc')
+      allow(File).to receive(:exist?).with(config_file).and_return(true)
+      allow(File).to receive(:readlines).with(config_file).and_return(config_content.lines)
 
       bookmarks = described_class.load_bookmarks
       expect(bookmarks).to eq({})
@@ -126,9 +132,9 @@ RSpec.describe Sergeant::Config do
     end
   end
 
-  describe '.default_config' do
+  describe 'DEFAULT_CONFIG constant' do
     it 'returns a hash with all required keys' do
-      config = described_class.default_config
+      config = described_class::DEFAULT_CONFIG
       expect(config).to include(
         'directories',
         'files',
@@ -141,10 +147,10 @@ RSpec.describe Sergeant::Config do
     end
 
     it 'returns reasonable default colors' do
-      config = described_class.default_config
+      config = described_class::DEFAULT_CONFIG
       expect(config['directories']).to eq('cyan')
       expect(config['files']).to eq('white')
-      expect(config['selected_bg']).to eq('blue')
+      expect(config['selected_bg']).to eq('cyan')
     end
   end
 end
