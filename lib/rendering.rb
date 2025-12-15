@@ -10,29 +10,53 @@ module Sergeant
 
       setpos(0, 0)
       attron(color_pair(4) | Curses::A_BOLD) do
-        addstr("┌─ Sergeant Navigator ".ljust(max_x, '─'))
+        addstr("┌─ Sergeant - 'Leave it to the Sarge!' ".ljust(max_x, '─'))
       end
 
       setpos(1, 0)
       branch = get_git_branch
-      
+
+      # Build status info
+      status_parts = []
+      status_parts << "Marked: #{@marked_items.length}" if @marked_items.length > 0
+      if @copied_items.length > 0
+        mode_text = @cut_mode ? "Cut" : "Copied"
+        status_parts << "#{mode_text}: #{@copied_items.length}"
+      end
+      status_text = status_parts.empty? ? "" : " | #{status_parts.join(' | ')}"
+
       if branch
         branch_text = " [#{branch}]"
-        path_max_length = max_x - 4 - branch_text.length
+        path_max_length = max_x - 4 - branch_text.length - status_text.length
         path_display = @current_dir.length > path_max_length ? "...#{@current_dir[-path_max_length+3..-1]}" : @current_dir
-        
+
         attron(color_pair(5)) do
           addstr("│ #{path_display}")
         end
         attron(color_pair(6) | Curses::A_BOLD) do
           addstr(branch_text)
         end
-        addstr("".ljust(max_x - 2 - path_display.length - branch_text.length))
-      else
-        attron(color_pair(5)) do
-          path_display = @current_dir.length > max_x - 4 ? "...#{@current_dir[-max_x+7..-1]}" : @current_dir
-          addstr("│ #{path_display}".ljust(max_x))
+        unless status_text.empty?
+          attron(color_pair(1) | Curses::A_BOLD) do
+            addstr(status_text)
+          end
         end
+        remaining = max_x - 2 - path_display.length - branch_text.length - status_text.length
+        addstr("".ljust(remaining)) if remaining > 0
+      else
+        path_max_length = max_x - 4 - status_text.length
+        path_display = @current_dir.length > path_max_length ? "...#{@current_dir[-path_max_length+3..-1]}" : @current_dir
+
+        attron(color_pair(5)) do
+          addstr("│ #{path_display}")
+        end
+        unless status_text.empty?
+          attron(color_pair(1) | Curses::A_BOLD) do
+            addstr(status_text)
+          end
+        end
+        remaining = max_x - 2 - path_display.length - status_text.length
+        addstr("".ljust(remaining)) if remaining > 0
       end
 
       setpos(2, 0)
@@ -42,7 +66,7 @@ module Sergeant
 
       setpos(max_y, 0)
       attron(color_pair(4)) do
-        help = "↑↓/jk:Move  Enter/v/→l:Open/Preview  ←h:Back  /:Search  b:Bookmark  o:Owner  q/ESC:Select"
+                help = "↑↓/jk:Move  Enter/→l:Open  ←h:Back  Space:Mark  c:Copy  x:Cut  r:Rename  d:Del  p:Paste  u:Unmark  v:Preview  o:Owner  b:Bookmark  /:Search  q:Select"
         addstr("└─ #{help}".ljust(max_x, ' '))
       end
 
@@ -97,11 +121,16 @@ module Sergeant
 
     def draw_item(item, max_x, is_selected)
       icon = item[:type] == :directory ? "📁 " : "📄 "
+
+      # Check if item is marked
+      is_marked = @marked_items.include?(item[:path])
+      mark_indicator = is_marked ? "✓ " : "  "
+
       prefix = is_selected ? "▶ " : "  "
 
       size_str = format_size(item[:size])
       date_str = format_date(item[:mtime])
-      
+
       if @show_ownership && item[:owner] && item[:perms]
         perms_str = item[:perms]
         owner_str = item[:owner].ljust(16)
@@ -111,9 +140,9 @@ module Sergeant
         owner_str = ""
         metadata_space = size_str.length + date_str.length + 4
       end
-      
-      available = max_x - prefix.length - icon.length - metadata_space - 1
-      
+
+      available = max_x - prefix.length - mark_indicator.length - icon.length - metadata_space - 1
+
       name = if item[:name].length > available
         "#{item[:name][0...available-3]}..."
       else
@@ -121,11 +150,11 @@ module Sergeant
       end
 
       if @show_ownership && item[:owner] && item[:perms]
-        display = "#{prefix}#{icon}#{name}  #{perms_str}  #{owner_str}  #{size_str}  #{date_str}".ljust(max_x)
+        display = "#{prefix}#{mark_indicator}#{icon}#{name}  #{perms_str}  #{owner_str}  #{size_str}  #{date_str}".ljust(max_x)
       else
-        display = "#{prefix}#{icon}#{name}  #{size_str}  #{date_str}".ljust(max_x)
+        display = "#{prefix}#{mark_indicator}#{icon}#{name}  #{size_str}  #{date_str}".ljust(max_x)
       end
-      
+
       addstr(display)
     end
   end
