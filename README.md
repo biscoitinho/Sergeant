@@ -4,7 +4,10 @@
 
 **Interactive TUI Directory Navigator for Terminal - "Leave it to the Sarge!"**
 
-Sergeant is a feature-rich, interactive terminal user interface (TUI) for navigating directories and managing files. Instead of typing `cd` and file manipulation commands, just run `sgt`, use arrow keys and keyboard shortcuts to navigate, preview, copy, move, and organize your files. Simple, fast, and elegant.
+Sergeant is a interactive terminal user interface (TUI) for navigating directories and managing files.
+Instead of typing `cd` and file manipulation commands, just run `sgt`,
+use arrow keys and keyboard shortcuts to navigate, preview, copy, move, and organize your files.
+Simple, fast, and elegant.
 
 ## ✨ Features
 
@@ -68,6 +71,9 @@ If you prefer manual installation:
 ```bash
 # Install dependencies
 bundle install
+
+# Build the single file executable
+ruby build.rb
 
 # Copy to your bin directory
 cp sgt.rb ~/.local/bin/sgt
@@ -188,15 +194,17 @@ sergeant/
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+Be warn, that I reserve my personal judgement to new features
+as I'm very focused on not to bloat it with too many functionalities
 
 ## 📝 License
 
-[Add your license here]
+MIT License
 
 ## 🙏 Acknowledgments
 
 - Built with Ruby and ncurses
-- Inspired by terminal file managers like ranger and nnn
+- Inspired by [Omarchy linux](https://omarchy.org) and terminal file managers like ranger and nnn
 - Uses [glow](https://github.com/charmbracelet/glow) for markdown rendering
 - Integrates with [fzf](https://github.com/junegunn/fzf) for fuzzy finding
 
