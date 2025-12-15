@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # File operation modals (preview, paste, delete, rename)
 
 module Sergeant
@@ -13,7 +15,7 @@ module Sergeant
 
         # Check if it's a text file
         unless text_file?(file_path)
-          show_error_modal("Cannot preview: Not a text file or too large (>50MB)")
+          show_error_modal('Cannot preview: Not a text file or too large (>50MB)')
           return
         end
 
@@ -28,22 +30,20 @@ module Sergeant
             system("glow -p \"#{file_path}\"")
           elsif file_ext == '.md'
             system("less -R -F -X \"#{file_path}\"")
-          else
+          elsif vim_available?
             # For all other text files, use vim/vi/nano
-            if vim_available?
-              system("vim -R \"#{file_path}\"")
-            elsif vi_available?
-              system("vi -R \"#{file_path}\"")
-            elsif nano_available?
-              system("nano -v \"#{file_path}\"")
-            else
-              # Ultimate fallback to less
-              system("less -R -F -X \"#{file_path}\"")
-            end
+            system("vim -R \"#{file_path}\"")
+          elsif vi_available?
+            system("vi -R \"#{file_path}\"")
+          elsif nano_available?
+            system("nano -v \"#{file_path}\"")
+          else
+            # Ultimate fallback to less
+            system("less -R -F -X \"#{file_path}\"")
           end
-        rescue => e
+        rescue StandardError => e
           puts "Error previewing file: #{e.message}"
-          puts "Press Enter to continue..."
+          puts 'Press Enter to continue...'
           gets
         end
 
@@ -86,34 +86,26 @@ module Sergeant
             # Perform copy or move
             if @cut_mode
               FileUtils.mv(source_path, dest_path)
+            elsif File.directory?(source_path)
+              FileUtils.cp_r(source_path, dest_path)
             else
-              if File.directory?(source_path)
-                FileUtils.cp_r(source_path, dest_path)
-              else
-                FileUtils.cp(source_path, dest_path)
-              end
+              FileUtils.cp(source_path, dest_path)
             end
 
             success_count += 1
-          rescue => e
+          rescue StandardError => e
             error_count += 1
             errors << "#{filename}: #{e.message}"
           end
         end
 
-        # Clean up after cut operation
-        if @cut_mode
-          @marked_items.clear
-          @copied_items.clear
-          @cut_mode = false
-        else
-          # For copy, clear marks after paste
-          @marked_items.clear
-          @copied_items.clear
-        end
+        # Clean up after operation
+        @marked_items.clear
+        @copied_items.clear
+        @cut_mode = false if @cut_mode
 
         # Show result
-        if error_count > 0
+        if error_count.positive?
           show_error_modal("Pasted #{success_count}, #{error_count} error(s)")
         else
           show_info_modal("Successfully pasted #{success_count} item(s)")
@@ -122,13 +114,14 @@ module Sergeant
 
       def get_unique_filename(path)
         dir = File.dirname(path)
-        basename = File.basename(path, ".*")
+        basename = File.basename(path, '.*')
         ext = File.extname(path)
         counter = 1
 
         loop do
           new_path = File.join(dir, "#{basename}_#{counter}#{ext}")
           return new_path unless File.exist?(new_path)
+
           counter += 1
         end
       end
@@ -146,7 +139,7 @@ module Sergeant
           begin
             FileUtils.rm_rf(item_path)
             success_count += 1
-          rescue => e
+          rescue StandardError => e
             error_count += 1
             filename = File.basename(item_path)
             errors << "#{filename}: #{e.message}"
@@ -157,7 +150,7 @@ module Sergeant
         @marked_items.clear
 
         # Show result
-        if error_count > 0
+        if error_count.positive?
           show_error_modal("Deleted #{success_count}, #{error_count} error(s)")
         else
           show_info_modal("Successfully deleted #{success_count} item(s)")
@@ -175,66 +168,66 @@ module Sergeant
         modal_y = (max_y - modal_height) / 2
         modal_x = (max_x - modal_width) / 2
 
-        (modal_y..modal_y + modal_height).each do |y|
+        (modal_y..(modal_y + modal_height)).each do |y|
           setpos(y, modal_x)
           attron(color_pair(3)) do
-            addstr(" " * modal_width)
+            addstr(' ' * modal_width)
           end
         end
 
         setpos(modal_y, modal_x)
         attron(color_pair(4) | Curses::A_BOLD) do
-          addstr("┌" + "─" * (modal_width - 2) + "┐")
+          addstr("\u250C#{'─' * (modal_width - 2)}\u2510")
         end
 
         setpos(modal_y + 1, modal_x)
         attron(color_pair(4) | Curses::A_BOLD) do
-          addstr("│")
+          addstr('│')
         end
         attron(color_pair(5) | Curses::A_BOLD) do
-          addstr(" Rename ".center(modal_width - 2))
+          addstr(' Rename '.center(modal_width - 2))
         end
         attron(color_pair(4) | Curses::A_BOLD) do
-          addstr("│")
+          addstr('│')
         end
 
         setpos(modal_y + 2, modal_x)
         attron(color_pair(4)) do
-          addstr("├" + "─" * (modal_width - 2) + "┤")
+          addstr("\u251C#{'─' * (modal_width - 2)}\u2524")
         end
 
         msg = "Current: #{item[:name]}"
         setpos(modal_y + 3, modal_x)
         attron(color_pair(4)) do
-          addstr("│ ")
+          addstr('│ ')
         end
-        display_msg = msg.length > modal_width - 4 ? "#{msg[0..modal_width-8]}..." : msg
+        display_msg = msg.length > modal_width - 4 ? "#{msg[0..(modal_width - 8)]}..." : msg
         addstr(display_msg.ljust(modal_width - 4))
         attron(color_pair(4)) do
-          addstr(" │")
+          addstr(' │')
         end
 
         setpos(modal_y + 4, modal_x)
         attron(color_pair(4)) do
-          addstr("│" + " " * (modal_width - 2) + "│")
+          addstr("\u2502#{' ' * (modal_width - 2)}\u2502")
         end
 
         setpos(modal_y + 5, modal_x)
         attron(color_pair(4)) do
-          addstr("│ ")
+          addstr('│ ')
         end
-        prompt = "New name: "
+        prompt = 'New name: '
         attron(color_pair(5)) do
           addstr(prompt)
         end
-        addstr(" " * (modal_width - 4 - prompt.length))
+        addstr(' ' * (modal_width - 4 - prompt.length))
         attron(color_pair(4)) do
-          addstr(" │")
+          addstr(' │')
         end
 
         setpos(modal_y + 6, modal_x)
         attron(color_pair(4)) do
-          addstr("│ ")
+          addstr('│ ')
         end
 
         curs_set(1)
@@ -256,10 +249,10 @@ module Sergeant
           when 10, 13
             break
           when 27
-            new_name = ""
+            new_name = ''
             break
           when 127, Curses::Key::BACKSPACE
-            if new_name.length > 0
+            if new_name.length.positive?
               new_name = new_name[0...-1]
               setpos(modal_y + 6, modal_x + 2)
               addstr(new_name.ljust(input_width))
@@ -282,38 +275,38 @@ module Sergeant
 
         setpos(modal_y + modal_height - 1, modal_x)
         attron(color_pair(4) | Curses::A_BOLD) do
-          addstr("└" + "─" * (modal_width - 2) + "┘")
+          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
         end
 
         refresh
 
         new_name = new_name.strip
 
-        unless new_name.empty? || new_name == item[:name]
-          old_path = item[:path]
-          new_path = File.join(File.dirname(old_path), new_name)
+        return if new_name.empty? || new_name == item[:name]
 
-          if File.exist?(new_path)
-            show_error_modal("File or directory already exists!")
-          else
-            begin
-              FileUtils.mv(old_path, new_path)
-              show_info_modal("Renamed successfully!")
+        old_path = item[:path]
+        new_path = File.join(File.dirname(old_path), new_name)
 
-              # Update marked items if this item was marked
-              if @marked_items.include?(old_path)
-                @marked_items.delete(old_path)
-                @marked_items << new_path
-              end
+        if File.exist?(new_path)
+          show_error_modal('File or directory already exists!')
+        else
+          begin
+            FileUtils.mv(old_path, new_path)
+            show_info_modal('Renamed successfully!')
 
-              # Update copied items if this item was copied
-              if @copied_items.include?(old_path)
-                @copied_items.delete(old_path)
-                @copied_items << new_path
-              end
-            rescue => e
-              show_error_modal("Error: #{e.message}")
+            # Update marked items if this item was marked
+            if @marked_items.include?(old_path)
+              @marked_items.delete(old_path)
+              @marked_items << new_path
             end
+
+            # Update copied items if this item was copied
+            if @copied_items.include?(old_path)
+              @copied_items.delete(old_path)
+              @copied_items << new_path
+            end
+          rescue StandardError => e
+            show_error_modal("Error: #{e.message}")
           end
         end
       end

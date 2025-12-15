@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 # Sergeant (sgt) - Interactive TUI directory navigator
 # Navigate directories with arrow keys, press Enter to cd
 
@@ -97,7 +99,7 @@ class SergeantApp
     rescue Interrupt
       close_screen
       exit 0
-    rescue => e
+    rescue StandardError => e
       close_screen
       puts "Error: #{e.message}"
       puts e.backtrace
@@ -111,7 +113,7 @@ class SergeantApp
     init_pair(1, Sergeant::Config.get_color(@config['directories']), Curses::COLOR_BLACK)
     init_pair(2, Sergeant::Config.get_color(@config['files']), Curses::COLOR_BLACK)
     init_pair(3, Sergeant::Config.get_color(@config['selected_fg']),
-                 Sergeant::Config.get_color(@config['selected_bg']))
+              Sergeant::Config.get_color(@config['selected_bg']))
     init_pair(4, Sergeant::Config.get_color(@config['header']), Curses::COLOR_BLACK)
     init_pair(5, Sergeant::Config.get_color(@config['path']), Curses::COLOR_BLACK)
     init_pair(6, Sergeant::Config.get_color(@config['git_branch']), Curses::COLOR_BLACK)
@@ -119,21 +121,23 @@ class SergeantApp
 
   def search_files
     close_screen
-    
+
     if fzf_available?
-      selected = `find "#{@current_dir}" -type f -o -type d 2>/dev/null | fzf --height=40% --reverse --prompt="Search: " --preview="ls -lah {}" --preview-window=right:50%`.strip
+      fzf_cmd = 'fzf --height=40% --reverse --prompt="Search: " ' \
+                '--preview="ls -lah {}" --preview-window=right:50%'
+      selected = `find "#{@current_dir}" -type f -o -type d 2>/dev/null | #{fzf_cmd}`.strip
     else
-      puts "fzf not found - using fallback search"
-      print "Search (regex): "
+      puts 'fzf not found - using fallback search'
+      print 'Search (regex): '
       query = gets.chomp
-      
+
       if query.empty?
         selected = nil
       else
         results = `find "#{@current_dir}" 2>/dev/null | grep -i "#{query}"`.split("\n")
-        
+
         if results.empty?
-          puts "No results found. Press Enter to continue..."
+          puts 'No results found. Press Enter to continue...'
           gets
           selected = nil
         elsif results.length == 1
@@ -143,30 +147,30 @@ class SergeantApp
           results.first(20).each_with_index do |result, idx|
             puts "#{idx + 1}. #{result}"
           end
-          puts "..." if results.length > 20
+          puts '...' if results.length > 20
           print "\nSelect number (or Enter to cancel): "
           choice = gets.chomp
           selected = choice.empty? ? nil : results[choice.to_i - 1]
         end
       end
     end
-    
+
     init_screen
     start_color
     curs_set(0)
     noecho
     stdscr.keypad(true)
     apply_color_theme
-    
-    if selected && !selected.empty?
-      if File.directory?(selected)
-        @current_dir = selected
-      else
-        @current_dir = File.dirname(selected)
-      end
-      @selected_index = 0
-      @scroll_offset = 0
-    end
+
+    return unless selected && !selected.empty?
+
+    @current_dir = if File.directory?(selected)
+                     selected
+                   else
+                     File.dirname(selected)
+                   end
+    @selected_index = 0
+    @scroll_offset = 0
   end
 
   def refresh_items
@@ -196,7 +200,7 @@ class SergeantApp
         owner_info = get_owner_info(stat)
         is_dir = File.directory?(full_path)
         perms = format_permissions(stat.mode, is_dir)
-        
+
         if is_dir
           directories << {
             name: entry,
@@ -228,7 +232,7 @@ class SergeantApp
     @items += directories + files
 
     @selected_index = [@selected_index, @items.length - 1].min
-    @selected_index = 0 if @selected_index < 0
+    @selected_index = 0 if @selected_index.negative?
   end
 
   def move_selection(delta)
@@ -272,9 +276,9 @@ class SergeantApp
   def delete_marked_items
     return if @marked_items.empty?
 
-    if confirm_delete_modal(@marked_items.length)
-      delete_with_modal
-    end
+    return unless confirm_delete_modal(@marked_items.length)
+
+    delete_with_modal
   end
 
   def rename_item
@@ -293,4 +297,3 @@ end
 
 # Run the navigator
 SergeantApp.new.run
-

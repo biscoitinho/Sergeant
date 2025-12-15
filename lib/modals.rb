@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Modal dialog windows - organized by context
 
 require_relative 'modals/navigation'
