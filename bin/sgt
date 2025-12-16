@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Sergeant (sgt) - Interactive TUI directory navigator
+# Version: 1.0.0
+
+require 'sergeant'
+
+# Run the navigator
+SergeantApp.new.run

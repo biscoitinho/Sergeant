@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 # Sergeant (sgt) - Interactive TUI directory navigator
@@ -7,11 +6,14 @@
 require 'curses'
 require 'pathname'
 require 'etc'
-require_relative 'lib/config'
-require_relative 'lib/utils'
-require_relative 'lib/modals'
-require_relative 'lib/rendering'
 
+require_relative 'sergeant/version'
+require_relative 'sergeant/config'
+require_relative 'sergeant/utils'
+require_relative 'sergeant/modals'
+require_relative 'sergeant/rendering'
+
+# Main application class for Sergeant
 class SergeantApp
   include Curses
   include Sergeant::Utils
@@ -294,6 +296,3 @@ class SergeantApp
     paste_with_modal
   end
 end
-
-# Run the navigator
-SergeantApp.new.run
