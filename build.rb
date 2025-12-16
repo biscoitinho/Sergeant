@@ -16,8 +16,7 @@ HEADER = <<~HEADER
 HEADER
 
 def extract_module_content(file_path)
-  content = File.read(file_path)
-  # Remove require statements and shebang
+  content = File.read(file_path, encoding: 'UTF-8')
   content.gsub!(%r{^#!/usr/bin/env ruby.*$}, '')
   content.gsub!(/^require.*$/, '')
   content.gsub!(/^require_relative.*$/, '')
@@ -33,6 +32,10 @@ def build
   lib_files = [
     'lib/config.rb',
     'lib/utils.rb',
+    'lib/modals/navigation.rb',
+    'lib/modals/dialogs.rb',
+    'lib/modals/file_operations.rb',
+    'lib/modals/help.rb',
     'lib/modals.rb',
     'lib/rendering.rb'
   ]
