@@ -4,7 +4,7 @@ require 'fileutils'
 require 'tmpdir'
 
 # Load the module first
-require_relative '../lib/modals/file_operations'
+require_relative '../lib/sergeant/modals/file_operations'
 
 # Create a test class that includes the FileOperations module
 # We need to mock the curses-related methods

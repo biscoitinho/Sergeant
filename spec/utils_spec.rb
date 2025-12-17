@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../lib/utils'
+require_relative '../lib/sergeant/utils'
 
 RSpec.describe Sergeant::Utils do
   let(:test_class) { Class.new { include Sergeant::Utils } }
