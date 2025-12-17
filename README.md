@@ -47,37 +47,42 @@ Simple, fast, and elegant.
 
 ## 🚀 Installation
 
-### Quick Install
+### Install from RubyGems (Coming Soon)
+
+Once published to RubyGems:
 
 ```bash
-cd sergeant
-
-# Install dependencies
-bundle install
-
-# Run the installer
-./install.sh
+gem install sergeant
 ```
 
-The installer will:
-1. Install the curses gem (if needed)
-2. Create the executable script `~/.local/bin/sgt`
-3. Make it executable and add to your PATH
-
-### Manual Installation
-
-If you prefer manual installation:
+### Install from Source
 
 ```bash
+# Clone the repository
+git clone https://github.com/biscoitinho/Sergeant.git
+cd Sergeant
+
+# Build and install the gem locally
+gem build sergeant.gemspec
+gem install ./sergeant-1.0.0.gem
+```
+
+That's it! The `sgt` command will automatically be added to your PATH.
+
+### Development Installation
+
+If you want to work on the gem:
+
+```bash
+# Clone and setup
+git clone https://github.com/biscoitinho/Sergeant.git
+cd Sergeant
+
 # Install dependencies
 bundle install
 
-# Build the single file executable
-ruby build.rb
-
-# Copy to your bin directory
-cp sgt.rb ~/.local/bin/sgt
-chmod +x ~/.local/bin/sgt
+# Run directly without installing
+bundle exec bin/sgt
 ```
 
 ## 🎮 Usage
@@ -176,19 +181,25 @@ bundle exec rubocop -A
 
 ```
 sergeant/
-├── sgt.rb              # Main application entry point
+├── bin/
+│   └── sgt                   # Executable command
 ├── lib/
-│   ├── config.rb       # Configuration and bookmark management
-│   ├── utils.rb        # Utility functions (formatting, file detection)
-│   ├── rendering.rb    # UI rendering and display logic
-│   └── modals/         # Modal dialog modules
-│       ├── navigation.rb     # Bookmark navigation
-│       ├── dialogs.rb        # Info/error/confirmation dialogs
-│       ├── file_operations.rb # File preview, copy, paste, delete, rename
-│       └── help.rb           # Help modal with key mappings
-├── spec/               # RSpec test suite
-├── Gemfile             # Ruby dependencies
-└── README.md           # This file
+│   ├── sergeant.rb           # Main application class
+│   └── sergeant/
+│       ├── version.rb        # Gem version
+│       ├── config.rb         # Configuration and bookmark management
+│       ├── utils.rb          # Utility functions (formatting, file detection)
+│       ├── rendering.rb      # UI rendering and display logic
+│       ├── modals.rb         # Modal modules loader
+│       └── modals/           # Modal dialog modules
+│           ├── navigation.rb       # Bookmark navigation
+│           ├── dialogs.rb          # Info/error/confirmation dialogs
+│           ├── file_operations.rb  # File preview, copy, paste, delete, rename
+│           └── help.rb             # Help modal with key mappings
+├── spec/                     # RSpec test suite
+├── sergeant.gemspec          # Gem specification
+├── Gemfile                   # Bundler configuration
+└── README.md                 # This file
 ```
 
 ## 🤝 Contributing
