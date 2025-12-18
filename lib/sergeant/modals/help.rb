@@ -9,7 +9,7 @@ module Sergeant
         max_y = lines
         max_x = cols
 
-        modal_height = 24
+        modal_height = 26
         modal_width = 70
         modal_y = (max_y - modal_height) / 2
         modal_x = (max_x - modal_width) / 2
@@ -57,8 +57,10 @@ module Sergeant
           '  d                 - Delete marked items',
           '  r                 - Rename current item',
           '  u                 - Unmark all items',
+          '  n                 - Create new file or directory',
           '',
           'Other:',
+          '  :                 - Execute terminal command',
           '  v                 - Preview file (glow for md, vim for code)',
           '  o                 - Toggle ownership display',
           '  b                 - Go to bookmark',
