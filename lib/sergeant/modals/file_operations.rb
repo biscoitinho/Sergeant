@@ -333,6 +333,12 @@ module Sergeant
           end
         end
 
+        # Bottom border
+        setpos(modal_y + modal_height - 1, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
+        end
+
         # Title
         setpos(modal_y + 1, modal_x + 2)
         attron(color_pair(4) | Curses::A_BOLD) do
@@ -420,13 +426,6 @@ module Sergeant
         noecho
         curs_set(0)
 
-        setpos(modal_y + modal_height - 1, modal_x)
-        attron(color_pair(4) | Curses::A_BOLD) do
-          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
-        end
-
-        refresh
-
         new_name = new_name.strip
 
         return if new_name.empty?
@@ -470,6 +469,12 @@ module Sergeant
           attron(color_pair(4) | Curses::A_BOLD) do
             addstr("\u2502#{' ' * (modal_width - 2)}\u2502")
           end
+        end
+
+        # Bottom border
+        setpos(modal_y + modal_height - 1, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
         end
 
         # Title
@@ -537,13 +542,6 @@ module Sergeant
 
         noecho
         curs_set(0)
-
-        setpos(modal_y + modal_height - 1, modal_x)
-        attron(color_pair(4) | Curses::A_BOLD) do
-          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
-        end
-
-        refresh
 
         command = command.strip
 
