@@ -81,8 +81,11 @@ cd Sergeant
 # Install dependencies
 bundle install
 
-# Run directly without installing
+# Run directly without installing the gem
 bundle exec bin/sgt
+
+# Or simply (bin/sgt adds lib to load path automatically)
+./bin/sgt
 ```
 
 ## 🎮 Usage

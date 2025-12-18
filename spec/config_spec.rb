@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'curses'
-require_relative '../lib/config'
+require_relative '../lib/sergeant/config'
 
 RSpec.describe Sergeant::Config do
   describe '.load_config' do

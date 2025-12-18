@@ -310,6 +310,273 @@ module Sergeant
           end
         end
       end
+
+      def create_new_with_modal
+        max_y = lines
+        max_x = cols
+
+        modal_width = [60, max_x - 4].min
+        modal_height = [10, max_y - 8].min  # Adaptive height (more conservative margin)
+        modal_x = (max_x - modal_width) / 2
+        modal_y = (max_y - modal_height) / 2
+
+        # Draw modal box
+        setpos(modal_y, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u250C#{'─' * (modal_width - 2)}\u2510")
+        end
+
+        (1...modal_height - 1).each do |i|
+          setpos(modal_y + i, modal_x)
+          attron(color_pair(4) | Curses::A_BOLD) do
+            addstr("\u2502#{' ' * (modal_width - 2)}\u2502")
+          end
+        end
+
+        # Bottom border
+        setpos(modal_y + modal_height - 1, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
+        end
+
+        # Title
+        setpos(modal_y + 1, modal_x + 2)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr('Create New')
+        end
+
+        # Prompt
+        setpos(modal_y + 3, modal_x + 2)
+        addstr('What do you want to create?')
+
+        setpos(modal_y + 5, modal_x + 2)
+        attron(color_pair(1) | Curses::A_BOLD) do
+          addstr('[f] File    [d] Directory    [ESC] Cancel')
+        end
+
+        refresh
+
+        # Get choice
+        choice = getch
+        return if choice == 27 # ESC
+
+        create_type = case choice
+                      when 'f', 'F'
+                        :file
+                      when 'd', 'D'
+                        :directory
+                      else
+                        return
+                      end
+
+        # Clear and ask for name
+        setpos(modal_y + 3, modal_x + 2)
+        addstr(' ' * (modal_width - 4))
+        setpos(modal_y + 5, modal_x + 2)
+        addstr(' ' * (modal_width - 4))
+
+        setpos(modal_y + 3, modal_x + 2)
+        type_text = create_type == :file ? 'file' : 'directory'
+        addstr("Enter #{type_text} name:")
+
+        setpos(modal_y + 5, modal_x + 2)
+        addstr('(ESC to cancel)')
+
+        # Input field
+        input_width = modal_width - 6
+        setpos(modal_y + 6, modal_x + 2)
+        attron(color_pair(3)) do
+          addstr(' ' * input_width)
+        end
+
+        # Get input
+        echo
+        curs_set(1)
+        new_name = ''
+
+        loop do
+          setpos(modal_y + 6, modal_x + 2 + new_name.length)
+          refresh
+
+          ch = getch
+
+          case ch
+          when 10, 13
+            break
+          when 27
+            new_name = ''
+            break
+          when 127, Curses::Key::BACKSPACE
+            if new_name.length.positive?
+              new_name = new_name[0...-1]
+              setpos(modal_y + 6, modal_x + 2)
+              addstr(new_name.ljust(input_width))
+              setpos(modal_y + 6, modal_x + 2 + new_name.length)
+            end
+          else
+            if ch.is_a?(String) && new_name.length < input_width && ch != '/'
+              new_name += ch
+              setpos(modal_y + 6, modal_x + 2)
+              addstr(new_name.ljust(input_width))
+              setpos(modal_y + 6, modal_x + 2 + new_name.length)
+            end
+          end
+        end
+
+        noecho
+        curs_set(0)
+
+        new_name = new_name.strip
+
+        return if new_name.empty?
+
+        new_path = File.join(@current_dir, new_name)
+
+        if File.exist?(new_path)
+          show_error_modal('File or directory already exists!')
+        else
+          begin
+            if create_type == :file
+              FileUtils.touch(new_path)
+              show_info_modal('File created successfully!')
+            else
+              FileUtils.mkdir_p(new_path)
+              show_info_modal('Directory created successfully!')
+            end
+          rescue StandardError => e
+            show_error_modal("Error: #{e.message}")
+          end
+        end
+      end
+
+      def execute_terminal_command
+        max_y = lines
+        max_x = cols
+
+        modal_width = [80, max_x - 4].min
+        modal_height = [8, max_y - 8].min  # Adaptive height (more conservative margin)
+        modal_x = (max_x - modal_width) / 2
+        modal_y = (max_y - modal_height) / 2
+
+        # Draw modal box
+        setpos(modal_y, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u250C#{'─' * (modal_width - 2)}\u2510")
+        end
+
+        (1...modal_height - 1).each do |i|
+          setpos(modal_y + i, modal_x)
+          attron(color_pair(4) | Curses::A_BOLD) do
+            addstr("\u2502#{' ' * (modal_width - 2)}\u2502")
+          end
+        end
+
+        # Bottom border
+        setpos(modal_y + modal_height - 1, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
+        end
+
+        # Title
+        setpos(modal_y + 1, modal_x + 2)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr('Execute Terminal Command')
+        end
+
+        # Show current directory
+        setpos(modal_y + 2, modal_x + 2)
+        attron(color_pair(5)) do
+          dir_display = @current_dir
+          max_dir_len = modal_width - 8
+          dir_display = "...#{@current_dir[(-max_dir_len + 3)..]}" if @current_dir.length > max_dir_len
+          addstr("in: #{dir_display}")
+        end
+
+        # Prompt
+        setpos(modal_y + 4, modal_x + 2)
+        addstr(':')
+
+        # Input field
+        input_width = modal_width - 6
+        setpos(modal_y + 4, modal_x + 4)
+        attron(color_pair(3)) do
+          addstr(' ' * input_width)
+        end
+
+        setpos(modal_y + 6, modal_x + 2)
+        addstr('(ESC to cancel)')
+
+        # Get input
+        echo
+        curs_set(1)
+        command = ''
+
+        loop do
+          setpos(modal_y + 4, modal_x + 4 + command.length)
+          refresh
+
+          ch = getch
+
+          case ch
+          when 10, 13
+            break
+          when 27
+            command = ''
+            break
+          when 127, Curses::Key::BACKSPACE
+            if command.length.positive?
+              command = command[0...-1]
+              setpos(modal_y + 4, modal_x + 4)
+              addstr(command.ljust(input_width))
+              setpos(modal_y + 4, modal_x + 4 + command.length)
+            end
+          else
+            if ch.is_a?(String) && command.length < input_width
+              command += ch
+              setpos(modal_y + 4, modal_x + 4)
+              addstr(command.ljust(input_width))
+              setpos(modal_y + 4, modal_x + 4 + command.length)
+            end
+          end
+        end
+
+        noecho
+        curs_set(0)
+
+        command = command.strip
+
+        return if command.empty?
+
+        # Close curses and execute command
+        close_screen
+
+        puts "Executing: #{command}"
+        puts '─' * 80
+        puts
+
+        begin
+          # Change to current directory and execute
+          Dir.chdir(@current_dir) do
+            system(command)
+          end
+        rescue StandardError => e
+          puts
+          puts "Error: #{e.message}"
+        end
+
+        puts
+        puts '─' * 80
+        puts 'Press Enter to continue...'
+        gets
+
+        # Restore curses
+        init_screen
+        start_color
+        curs_set(0)
+        noecho
+        stdscr.keypad(true)
+        apply_color_theme
+      end
     end
   end
 end

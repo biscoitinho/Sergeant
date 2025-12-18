@@ -6,6 +6,7 @@
 require 'curses'
 require 'pathname'
 require 'etc'
+require 'fileutils'
 
 require_relative 'sergeant/version'
 require_relative 'sergeant/config'
@@ -83,6 +84,10 @@ class SergeantApp
           unmark_all
         when 'm'
           show_help_modal
+        when 'n'
+          create_new_with_modal
+        when ':'
+          execute_terminal_command
         when '/'
           search_files
         when 'q', 27
