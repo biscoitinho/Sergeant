@@ -316,7 +316,7 @@ module Sergeant
         max_x = cols
 
         modal_width = [60, max_x - 4].min
-        modal_height = 10
+        modal_height = [10, max_y - 4].min  # Adaptive height
         modal_x = (max_x - modal_width) / 2
         modal_y = (max_y - modal_height) / 2
 
@@ -455,7 +455,7 @@ module Sergeant
         max_x = cols
 
         modal_width = [80, max_x - 4].min
-        modal_height = 8
+        modal_height = [8, max_y - 4].min  # Adaptive height
         modal_x = (max_x - modal_width) / 2
         modal_y = (max_y - modal_height) / 2
 
