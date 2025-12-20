@@ -9,8 +9,8 @@ module Sergeant
         max_y = lines
         max_x = cols
 
-        modal_height = 26
-        modal_width = 70
+        modal_height = [26, max_y - 4].min  # Adaptive height
+        modal_width = [70, max_x - 4].min   # Adaptive width
         modal_y = (max_y - modal_height) / 2
         modal_x = (max_x - modal_width) / 2
 
@@ -61,7 +61,8 @@ module Sergeant
           '',
           'Other:',
           '  :                 - Execute terminal command',
-          '  v                 - Preview file (glow for md, vim for code)',
+          '  e                 - Edit file ($EDITOR, nano, nvim, vim)',
+          '  v                 - Preview file (read-only)',
           '  o                 - Toggle ownership display',
           '  b                 - Go to bookmark',
           '  /                 - Search files (with fzf if available)',
@@ -69,16 +70,26 @@ module Sergeant
         ]
 
         help_lines.each_with_index do |line, idx|
+          break if idx >= modal_height - 4  # Stop if we run out of vertical space
+
           setpos(modal_y + 3 + idx, modal_x)
           attron(color_pair(4)) do
             addstr('│ ')
           end
+
+          # Truncate line if it's too long for the modal width
+          display_line = if line.length > modal_width - 4
+                          "#{line[0...(modal_width - 7)]}..."
+                         else
+                          line.ljust(modal_width - 4)
+                         end
+
           if line.start_with?('Navigation:', 'File Operations:', 'Other:')
             attron(color_pair(1) | Curses::A_BOLD) do
-              addstr(line.ljust(modal_width - 4))
+              addstr(display_line)
             end
           else
-            addstr(line.ljust(modal_width - 4))
+            addstr(display_line)
           end
           attron(color_pair(4)) do
             addstr(' │')

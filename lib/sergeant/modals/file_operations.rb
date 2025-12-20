@@ -1,10 +1,61 @@
 # frozen_string_literal: true
 
-# File operation modals (preview, paste, delete, rename)
+# File operation modals (preview, edit, paste, delete, rename)
 
 module Sergeant
   module Modals
     module FileOperations
+      def edit_file
+        item = @items[@selected_index]
+
+        # Only edit files, not directories
+        return unless item && item[:type] == :file
+
+        file_path = item[:path]
+
+        # Close curses screen temporarily
+        close_screen
+
+        begin
+          # Respect user's preferred editor
+          editor = ENV['EDITOR'] || ENV['VISUAL']
+
+          if editor
+            # Use user's preferred editor
+            system("#{editor} \"#{file_path}\"")
+          elsif nvim_available?
+            # Second fallback: nvim (modern vim)
+            system("nvim \"#{file_path}\"")
+          elsif nano_available?
+            # First fallback: nano (user-friendly)
+            system("nano \"#{file_path}\"")
+          elsif vim_available?
+            # Third fallback: vim
+            system("vim \"#{file_path}\"")
+          elsif vi_available?
+            # Fourth fallback: vi (always available on POSIX)
+            system("vi \"#{file_path}\"")
+          else
+            # This should never happen on POSIX systems
+            puts 'No editor found. Please set $EDITOR environment variable.'
+            puts 'Press Enter to continue...'
+            gets
+          end
+        rescue StandardError => e
+          puts "Error opening editor: #{e.message}"
+          puts 'Press Enter to continue...'
+          gets
+        end
+
+        # Restore curses screen
+        init_screen
+        start_color
+        curs_set(0)
+        noecho
+        stdscr.keypad(true)
+        apply_color_theme
+      end
+
       def preview_file
         item = @items[@selected_index]
 
@@ -30,8 +81,10 @@ module Sergeant
             system("glow -p \"#{file_path}\"")
           elsif file_ext == '.md'
             system("less -R -F -X \"#{file_path}\"")
+          elsif nvim_available?
+            # For all other text files, prefer nvim for read-only
+            system("nvim -R \"#{file_path}\"")
           elsif vim_available?
-            # For all other text files, use vim/vi/nano
             system("vim -R \"#{file_path}\"")
           elsif vi_available?
             system("vi -R \"#{file_path}\"")

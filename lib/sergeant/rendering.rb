@@ -65,13 +65,13 @@ module Sergeant
         addstr('├'.ljust(max_x, '─'))
       end
 
-      # Check if we need two lines for footer (narrow terminal)
-      footer_lines = needs_two_line_footer?(max_x) ? 2 : 1
-
       setpos(max_y, 0)
-      draw_footer(max_x, max_y)
+      attron(color_pair(4)) do
+        help = '↑↓/jk:Move  Enter:Open  ←h:Back  Space:Mark  c:Copy  x:Cut  p:Paste  d:Del  e:Edit  m:Help  q:Quit'
+        addstr("└─ #{help}".ljust(max_x, ' '))
+      end
 
-      visible_lines = max_y - 3 - footer_lines
+      visible_lines = max_y - 4
 
       if @selected_index < @scroll_offset
         @scroll_offset = @selected_index
@@ -155,70 +155,6 @@ module Sergeant
                 end
 
       addstr(display)
-    end
-
-    def needs_two_line_footer?(max_x)
-      # Check if terminal is narrow enough to need two-line footer
-      short_help = 'jk:Move  ⏎:Open  h:Back  Spc:Mark  c:Copy  x:Cut  p:Paste  d:Del  m:Help  q:Quit'
-      help_line1 = 'jk:Move  ⏎:Open  h:Back  Spc:Mark  c:Copy  x:Cut'
-
-      max_x < short_help.length + 3 && max_x >= help_line1.length + 3
-    end
-
-    def draw_footer(max_x, max_y)
-      # Define help text variations based on terminal width
-      full_help = '↑↓/jk:Move  Enter:Open  ←h:Back  Space:Mark  c:Copy  x:Cut  p:Paste  d:Del  m:Help  q:Quit'
-      medium_help = '↑↓/jk:Move  ⏎:Open  ←h:Back  Space:Mark  c:Copy  x:Cut  p:Paste  d:Del  m:Help  q:Quit'
-      compact_help = '↑↓/jk:Move  ⏎:Open  ←:Back  Spc:Mark  c:Copy  x:Cut  p:Paste  d:Del  m:Help  q:Quit'
-      short_help = 'jk:Move  ⏎:Open  h:Back  Spc:Mark  c:Copy  x:Cut  p:Paste  d:Del  m:Help  q:Quit'
-
-      # Two-line help for very narrow terminals
-      help_line1 = 'jk:Move  ⏎:Open  h:Back  Spc:Mark  c:Copy  x:Cut'
-      help_line2 = 'p:Paste  d:Del  r:Rename  m:Help  q:Quit'
-
-      help_text_length = full_help.length + 3 # +3 for "└─ " prefix
-
-      if max_x >= help_text_length
-        # Wide terminal: use full help text
-        setpos(max_y, 0)
-        attron(color_pair(4)) do
-          addstr("└─ #{full_help}".ljust(max_x, ' '))
-        end
-      elsif max_x >= medium_help.length + 3
-        # Medium terminal: use medium help text
-        setpos(max_y, 0)
-        attron(color_pair(4)) do
-          addstr("└─ #{medium_help}".ljust(max_x, ' '))
-        end
-      elsif max_x >= compact_help.length + 3
-        # Compact terminal: use compact help text
-        setpos(max_y, 0)
-        attron(color_pair(4)) do
-          addstr("└─ #{compact_help}".ljust(max_x, ' '))
-        end
-      elsif max_x >= short_help.length + 3
-        # Short terminal: use short help text
-        setpos(max_y, 0)
-        attron(color_pair(4)) do
-          addstr("└─ #{short_help}".ljust(max_x, ' '))
-        end
-      elsif max_x >= help_line1.length + 3
-        # Very narrow terminal: split into two lines
-        setpos(max_y - 1, 0)
-        attron(color_pair(4)) do
-          addstr("├─ #{help_line1}".ljust(max_x, ' '))
-        end
-        setpos(max_y, 0)
-        attron(color_pair(4)) do
-          addstr("└─ #{help_line2}".ljust(max_x, ' '))
-        end
-      else
-        # Extremely narrow: just show minimal help
-        setpos(max_y, 0)
-        attron(color_pair(4)) do
-          addstr('└─ m:Help  q:Quit'.ljust(max_x, ' '))
-        end
-      end
     end
   end
 end
