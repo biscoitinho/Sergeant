@@ -66,6 +66,8 @@ class SergeantApp
           goto_bookmark
         when 'o'
           @show_ownership = !@show_ownership
+        when 'e'
+          edit_file
         when 'v'
           preview_file
         when 32, ' '

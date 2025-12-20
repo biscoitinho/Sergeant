@@ -1,10 +1,58 @@
 # frozen_string_literal: true
 
-# File operation modals (preview, paste, delete, rename)
+# File operation modals (preview, edit, paste, delete, rename)
 
 module Sergeant
   module Modals
     module FileOperations
+      def edit_file
+        item = @items[@selected_index]
+
+        # Only edit files, not directories
+        return unless item && item[:type] == :file
+
+        file_path = item[:path]
+
+        # Close curses screen temporarily
+        close_screen
+
+        begin
+          # Respect user's preferred editor
+          editor = ENV['EDITOR'] || ENV['VISUAL']
+
+          if editor
+            # Use user's preferred editor
+            system("#{editor} \"#{file_path}\"")
+          elsif nano_available?
+            # First fallback: nano (user-friendly)
+            system("nano \"#{file_path}\"")
+          elsif vim_available?
+            # Second fallback: vim
+            system("vim \"#{file_path}\"")
+          elsif vi_available?
+            # Third fallback: vi (always available on POSIX)
+            system("vi \"#{file_path}\"")
+          else
+            # This should never happen on POSIX systems
+            puts 'No editor found. Please set $EDITOR environment variable.'
+            puts 'Press Enter to continue...'
+            gets
+          end
+        rescue StandardError => e
+          puts "Error opening editor: #{e.message}"
+          puts 'Press Enter to continue...'
+          gets
+        end
+
+        # Restore curses screen
+        init_screen
+        start_color
+        curs_set(0)
+        noecho
+        stdscr.keypad(true)
+        apply_color_theme
+      end
+
       def preview_file
         item = @items[@selected_index]
 

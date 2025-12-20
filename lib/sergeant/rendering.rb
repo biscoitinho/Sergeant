@@ -67,7 +67,7 @@ module Sergeant
 
       setpos(max_y, 0)
       attron(color_pair(4)) do
-        help = '↑↓/jk:Move  Enter:Open  ←h:Back  Space:Mark  c:Copy  x:Cut  p:Paste  d:Del  m:Help  q:Quit'
+        help = '↑↓/jk:Move  Enter:Open  ←h:Back  Space:Mark  c:Copy  x:Cut  p:Paste  d:Del  e:Edit  m:Help  q:Quit'
         addstr("└─ #{help}".ljust(max_x, ' '))
       end
 
