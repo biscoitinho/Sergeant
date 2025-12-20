@@ -61,7 +61,7 @@ module Sergeant
           '',
           'Other:',
           '  :                 - Execute terminal command',
-          '  e                 - Edit file ($EDITOR, nano, vim)',
+          '  e                 - Edit file ($EDITOR, nano, nvim, vim)',
           '  v                 - Preview file (read-only)',
           '  o                 - Toggle ownership display',
           '  b                 - Go to bookmark',

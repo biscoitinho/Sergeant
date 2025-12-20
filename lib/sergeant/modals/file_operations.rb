@@ -26,11 +26,14 @@ module Sergeant
           elsif nano_available?
             # First fallback: nano (user-friendly)
             system("nano \"#{file_path}\"")
+          elsif nvim_available?
+            # Second fallback: nvim (modern vim)
+            system("nvim \"#{file_path}\"")
           elsif vim_available?
-            # Second fallback: vim
+            # Third fallback: vim
             system("vim \"#{file_path}\"")
           elsif vi_available?
-            # Third fallback: vi (always available on POSIX)
+            # Fourth fallback: vi (always available on POSIX)
             system("vi \"#{file_path}\"")
           else
             # This should never happen on POSIX systems
@@ -78,8 +81,10 @@ module Sergeant
             system("glow -p \"#{file_path}\"")
           elsif file_ext == '.md'
             system("less -R -F -X \"#{file_path}\"")
+          elsif nvim_available?
+            # For all other text files, prefer nvim for read-only
+            system("nvim -R \"#{file_path}\"")
           elsif vim_available?
-            # For all other text files, use vim/vi/nano
             system("vim -R \"#{file_path}\"")
           elsif vi_available?
             system("vi -R \"#{file_path}\"")

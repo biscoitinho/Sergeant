@@ -85,6 +85,10 @@ module Sergeant
       system('command -v glow > /dev/null 2>&1')
     end
 
+    def nvim_available?
+      system('command -v nvim > /dev/null 2>&1')
+    end
+
     def vim_available?
       system('command -v vim > /dev/null 2>&1')
     end
