@@ -36,10 +36,31 @@ Simple, fast, and elegant.
 ## 📋 Requirements
 
 - **Ruby** 2.7 or higher (Ruby 3.x recommended)
-- **Bundler** - For dependency management
-- **ncurses library** (system dependency)
-  - macOS: Included by default
-  - Linux: `sudo apt-get install libncurses-dev` (if needed)
+
+### System Dependencies
+
+The `curses` gem (installed automatically) requires native libraries:
+
+**macOS:**
+```bash
+# Usually works out of the box
+# If you get errors, install Xcode Command Line Tools:
+xcode-select --install
+
+# Recommended: Use Homebrew Ruby instead of system Ruby
+brew install ruby
+# Add to ~/.zshrc: export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+```
+
+**Linux (Debian/Ubuntu):**
+```bash
+sudo apt-get install libncurses-dev ruby-dev
+```
+
+**Linux (Fedora/RHEL):**
+```bash
+sudo dnf install ncurses-devel ruby-devel
+```
 
 ### Optional Tools
 - **glow** - For beautiful markdown preview (`brew install glow` or `go install github.com/charmbracelet/glow@latest`)
