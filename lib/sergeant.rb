@@ -31,6 +31,8 @@ class SergeantApp
     @marked_items = []
     @copied_items = []
     @cut_mode = false
+    @last_refreshed_dir = nil
+    @items = []
   end
 
   def run
@@ -44,7 +46,8 @@ class SergeantApp
 
     begin
       loop do
-        refresh_items
+        # Only refresh items when directory changes, not on every keystroke
+        refresh_items_if_needed
         draw_screen
 
         key = getch
@@ -180,6 +183,20 @@ class SergeantApp
                    end
     @selected_index = 0
     @scroll_offset = 0
+  end
+
+  def refresh_items_if_needed
+    # Only refresh if directory has changed, or if showing ownership toggle changed
+    # This prevents expensive file system operations on every keystroke
+    if @current_dir != @last_refreshed_dir
+      refresh_items
+      @last_refreshed_dir = @current_dir
+    end
+  end
+
+  def force_refresh
+    # Force a refresh even if directory hasn't changed (e.g., after file operations)
+    @last_refreshed_dir = nil
   end
 
   def refresh_items
