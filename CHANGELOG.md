@@ -5,6 +5,17 @@ All notable changes to Sergeant will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2024-12-24
+
+### Fixed
+- **Major performance improvement**: Fixed severe input lag with large directories
+  - Directory contents now only refresh when necessary (directory changes, file operations)
+  - Previously refreshed on every keystroke, causing thousands of unnecessary file system calls
+  - Navigation (arrow keys, marking) is now instant regardless of directory size
+- **Better error handling**: Added error messages to help diagnose installation issues
+  - Shows load path and helpful reinstall instructions if gem fails to load
+  - Displays full error details instead of silently failing
+
 ## [1.0.0] - 2024-12-23
 
 ### Added

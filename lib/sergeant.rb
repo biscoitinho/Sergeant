@@ -31,8 +31,6 @@ class SergeantApp
     @marked_items = []
     @copied_items = []
     @cut_mode = false
-    @last_refreshed_dir = nil
-    @items = []
   end
 
   def run
@@ -44,14 +42,12 @@ class SergeantApp
 
     apply_color_theme
 
-    # Force initial refresh to ensure terminal displays on all platforms
-    refresh
-
     begin
+      needs_refresh = true
       loop do
-        # Only refresh items when directory changes, not on every keystroke
-        refresh_items_if_needed
+        refresh_items if needs_refresh
         draw_screen
+        needs_refresh = false
 
         key = getch
         case key
@@ -65,17 +61,22 @@ class SergeantApp
             @current_dir = item[:path]
             @selected_index = 0
             @scroll_offset = 0
+            needs_refresh = true
           elsif item && item[:type] == :file
             preview_file
+            needs_refresh = true
           end
         when 'b'
           goto_bookmark
+          needs_refresh = true
         when 'o'
           @show_ownership = !@show_ownership
         when 'e'
           edit_file
+          needs_refresh = true
         when 'v'
           preview_file
+          needs_refresh = true
         when 32, ' '
           toggle_mark
         when 'c'
@@ -84,20 +85,26 @@ class SergeantApp
           cut_marked_items
         when 'd'
           delete_marked_items
+          needs_refresh = true
         when 'r'
           rename_item
+          needs_refresh = true
         when 'p'
           paste_items
+          needs_refresh = true
         when 'u'
           unmark_all
         when 'm'
           show_help_modal
         when 'n'
           create_new_with_modal
+          needs_refresh = true
         when ':'
           execute_terminal_command
+          needs_refresh = true
         when '/'
           search_files
+          needs_refresh = true
         when 'q', 27
           close_screen
           puts @current_dir
@@ -108,6 +115,7 @@ class SergeantApp
             @current_dir = parent
             @selected_index = 0
             @scroll_offset = 0
+            needs_refresh = true
           end
         end
       end
@@ -176,7 +184,6 @@ class SergeantApp
     noecho
     stdscr.keypad(true)
     apply_color_theme
-    refresh  # Ensure display updates on all platforms
 
     return unless selected && !selected.empty?
 
@@ -187,20 +194,6 @@ class SergeantApp
                    end
     @selected_index = 0
     @scroll_offset = 0
-  end
-
-  def refresh_items_if_needed
-    # Only refresh if directory has changed, or if showing ownership toggle changed
-    # This prevents expensive file system operations on every keystroke
-    if @current_dir != @last_refreshed_dir
-      refresh_items
-      @last_refreshed_dir = @current_dir
-    end
-  end
-
-  def force_refresh
-    # Force a refresh even if directory hasn't changed (e.g., after file operations)
-    @last_refreshed_dir = nil
   end
 
   def refresh_items
