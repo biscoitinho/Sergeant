@@ -54,6 +54,7 @@ module Sergeant
         noecho
         stdscr.keypad(true)
         apply_color_theme
+        refresh  # Ensure display updates on all platforms
       end
 
       def preview_file
@@ -107,6 +108,7 @@ module Sergeant
         noecho
         stdscr.keypad(true)
         apply_color_theme
+        refresh  # Ensure display updates on all platforms
       end
 
       def paste_with_modal
@@ -163,6 +165,9 @@ module Sergeant
         else
           show_info_modal("Successfully pasted #{success_count} item(s)")
         end
+
+        # Force refresh to show new files
+        force_refresh
       end
 
       def get_unique_filename(path)
@@ -208,6 +213,9 @@ module Sergeant
         else
           show_info_modal("Successfully deleted #{success_count} item(s)")
         end
+
+        # Force refresh to show changes
+        force_refresh
       end
 
       def rename_with_modal(item)
@@ -358,6 +366,9 @@ module Sergeant
               @copied_items.delete(old_path)
               @copied_items << new_path
             end
+
+            # Force refresh to show renamed item
+            force_refresh
           rescue StandardError => e
             show_error_modal("Error: #{e.message}")
           end
@@ -496,6 +507,9 @@ module Sergeant
               FileUtils.mkdir_p(new_path)
               show_info_modal('Directory created successfully!')
             end
+
+            # Force refresh to show new item
+            force_refresh
           rescue StandardError => e
             show_error_modal("Error: #{e.message}")
           end
@@ -629,6 +643,10 @@ module Sergeant
         noecho
         stdscr.keypad(true)
         apply_color_theme
+        refresh  # Ensure display updates on all platforms
+
+        # Force refresh to show any changes from the command
+        force_refresh
       end
     end
   end
