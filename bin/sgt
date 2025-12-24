@@ -4,7 +4,20 @@
 # Sergeant (sgt) - Interactive TUI directory navigator
 # Version: 1.0.0
 
-require 'sergeant'
+begin
+  require 'sergeant'
+rescue LoadError => e
+  warn "Error loading sergeant: #{e.message}"
+  warn "Load path: #{$LOAD_PATH.join(', ')}"
+  warn "\nTry reinstalling: gem uninstall sergeant && gem install sergeant"
+  exit 1
+end
 
 # Run the navigator
-SergeantApp.new.run
+begin
+  SergeantApp.new.run
+rescue StandardError => e
+  warn "\nSergeant error: #{e.message}"
+  warn e.backtrace.join("\n")
+  exit 1
+end

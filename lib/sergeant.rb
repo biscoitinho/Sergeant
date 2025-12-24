@@ -6,6 +6,7 @@
 require 'curses'
 require 'pathname'
 require 'etc'
+require 'fileutils'
 
 require_relative 'sergeant/version'
 require_relative 'sergeant/config'
@@ -42,9 +43,11 @@ class SergeantApp
     apply_color_theme
 
     begin
+      needs_refresh = true
       loop do
-        refresh_items
+        refresh_items if needs_refresh
         draw_screen
+        needs_refresh = false
 
         key = getch
         case key
@@ -58,15 +61,22 @@ class SergeantApp
             @current_dir = item[:path]
             @selected_index = 0
             @scroll_offset = 0
+            needs_refresh = true
           elsif item && item[:type] == :file
             preview_file
+            needs_refresh = true
           end
         when 'b'
           goto_bookmark
+          needs_refresh = true
         when 'o'
           @show_ownership = !@show_ownership
+        when 'e'
+          edit_file
+          needs_refresh = true
         when 'v'
           preview_file
+          needs_refresh = true
         when 32, ' '
           toggle_mark
         when 'c'
@@ -75,16 +85,26 @@ class SergeantApp
           cut_marked_items
         when 'd'
           delete_marked_items
+          needs_refresh = true
         when 'r'
           rename_item
+          needs_refresh = true
         when 'p'
           paste_items
+          needs_refresh = true
         when 'u'
           unmark_all
         when 'm'
           show_help_modal
+        when 'n'
+          create_new_with_modal
+          needs_refresh = true
+        when ':'
+          execute_terminal_command
+          needs_refresh = true
         when '/'
           search_files
+          needs_refresh = true
         when 'q', 27
           close_screen
           puts @current_dir
@@ -95,6 +115,7 @@ class SergeantApp
             @current_dir = parent
             @selected_index = 0
             @scroll_offset = 0
+            needs_refresh = true
           end
         end
       end
