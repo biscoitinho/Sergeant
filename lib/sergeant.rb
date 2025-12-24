@@ -44,9 +44,6 @@ class SergeantApp
 
     apply_color_theme
 
-    # Force initial refresh to ensure terminal displays on all platforms
-    refresh
-
     begin
       loop do
         # Only refresh items when directory changes, not on every keystroke
@@ -176,7 +173,6 @@ class SergeantApp
     noecho
     stdscr.keypad(true)
     apply_color_theme
-    refresh  # Ensure display updates on all platforms
 
     return unless selected && !selected.empty?
 

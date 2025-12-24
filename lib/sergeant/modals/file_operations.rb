@@ -54,7 +54,6 @@ module Sergeant
         noecho
         stdscr.keypad(true)
         apply_color_theme
-        refresh  # Ensure display updates on all platforms
       end
 
       def preview_file
@@ -108,7 +107,6 @@ module Sergeant
         noecho
         stdscr.keypad(true)
         apply_color_theme
-        refresh  # Ensure display updates on all platforms
       end
 
       def paste_with_modal
@@ -643,7 +641,6 @@ module Sergeant
         noecho
         stdscr.keypad(true)
         apply_color_theme
-        refresh  # Ensure display updates on all platforms
 
         # Force refresh to show any changes from the command
         force_refresh
