@@ -34,6 +34,25 @@ Gem::Specification.new do |spec|
   spec.executables   = ['sgt']
   spec.require_paths = ['lib']
 
+  # Post-install message
+  spec.post_install_message = <<~MSG
+
+    Thanks for installing Sergeant! 🎖️
+
+    Run 'sgt' to start navigating directories.
+
+    ⚠️  If sgt doesn't display anything (blank screen):
+       This can happen on Arch Linux with Ruby version managers (mise, rbenv, asdf)
+
+       Quick fix: ruby $(which sgt)
+
+       Permanent fix:
+         gem contents sergeant | grep arch_fix.sh | xargs bash
+
+       Or see: https://github.com/biscoitinho/Sergeant#troubleshooting-installation
+
+  MSG
+
   # Runtime dependencies
   spec.add_dependency 'curses', '~> 1.4'
 
