@@ -36,7 +36,14 @@ class SergeantApp
   end
 
   def run
-    init_screen
+    begin
+      init_screen
+    rescue StandardError => e
+      warn "Error: Failed to initialize terminal: #{e.message}"
+      warn "TERM=#{ENV['TERM']}, stdout.tty?=#{$stdout.isatty}, stdin.tty?=#{$stdin.isatty}"
+      warn "Try: TERM=xterm-256color sgt"
+      exit 1
+    end
 
     # Only initialize colors if terminal supports them
     if has_colors?
