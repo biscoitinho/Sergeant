@@ -49,11 +49,13 @@ module Sergeant
 
         # Restore curses screen
         init_screen
-        start_color
+        if has_colors?
+          start_color
+          apply_color_theme
+        end
         curs_set(0)
         noecho
         stdscr.keypad(true)
-        apply_color_theme
       end
 
       def preview_file
@@ -102,11 +104,13 @@ module Sergeant
 
         # Restore curses screen
         init_screen
-        start_color
+        if has_colors?
+          start_color
+          apply_color_theme
+        end
         curs_set(0)
         noecho
         stdscr.keypad(true)
-        apply_color_theme
       end
 
       def paste_with_modal
@@ -636,11 +640,13 @@ module Sergeant
 
         # Restore curses
         init_screen
-        start_color
+        if has_colors?
+          start_color
+          apply_color_theme
+        end
         curs_set(0)
         noecho
         stdscr.keypad(true)
-        apply_color_theme
 
         # Force refresh to show any changes from the command
         force_refresh

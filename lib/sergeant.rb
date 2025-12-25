@@ -172,11 +172,13 @@ class SergeantApp
     end
 
     init_screen
-    start_color
+    if has_colors?
+      start_color
+      apply_color_theme
+    end
     curs_set(0)
     noecho
     stdscr.keypad(true)
-    apply_color_theme
 
     return unless selected && !selected.empty?
 
