@@ -90,6 +90,27 @@ gem install ./sergeant-1.0.0.gem
 
 That's it! The `sgt` command will automatically be added to your PATH.
 
+### Troubleshooting Installation
+
+**If sgt doesn't display anything (shows blank screen):**
+
+This can happen on Arch Linux or other systems using Ruby version managers (mise, rbenv, asdf).
+
+**Quick fix:**
+```bash
+# Run with explicit ruby
+ruby $(which sgt)
+```
+
+**Permanent fix:**
+```bash
+# Run the automated fix script
+cd Sergeant
+bash arch_fix.sh
+```
+
+**For detailed troubleshooting**, see [INSTALL_TROUBLESHOOTING.md](./INSTALL_TROUBLESHOOTING.md)
+
 ### Development Installation
 
 If you want to work on the gem:
