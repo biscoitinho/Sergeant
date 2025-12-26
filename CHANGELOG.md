@@ -5,6 +5,27 @@ All notable changes to Sergeant will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2024-12-24
+
+### Fixed
+- **Display issue on Arch Linux**: Added terminal color support checking
+  - Prevents crashes on terminals without color support
+  - Gracefully degrades when `start_color` is unavailable
+  - Fixes blank screen issue with Ruby version managers (mise, rbenv, asdf)
+
+### Added
+- **Installation troubleshooting**
+  - Comprehensive troubleshooting documentation in README
+  - Simple alias solution for Arch Linux display issues: `alias sgt='ruby "$(which sgt)"'`
+- **Better error handling**
+  - Terminal initialization now shows helpful error messages on failure
+  - Displays environment information (TERM, TTY status) to aid debugging
+
+### Technical
+- Improved terminal initialization with `has_colors?` checks before calling `start_color`
+- Added error recovery for curses screen initialization failures
+- Better compatibility with different ncurses implementations
+
 ## [1.0.1] - 2024-12-24
 
 ### Fixed
