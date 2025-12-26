@@ -96,15 +96,27 @@ That's it! The `sgt` command will automatically be added to your PATH.
 
 This can happen on Arch Linux or other systems using Ruby version managers (mise, rbenv, asdf).
 
-**Quick fix:**
+**Recommended fix - Add an alias (simplest):**
 ```bash
-# Run with explicit ruby
+# Add to your ~/.bashrc or ~/.zshrc:
+echo 'alias sgt='"'"'ruby "$(which sgt)"'"'"'' >> ~/.bashrc
+
+# Reload your shell:
+source ~/.bashrc  # or: source ~/.zshrc
+
+# Now sgt works!
+sgt
+```
+
+**Alternative - Quick test:**
+```bash
+# Run with explicit ruby (temporary fix)
 ruby $(which sgt)
 ```
 
-**Permanent fix:**
+**Alternative - Automated fix script:**
 ```bash
-# Run the automated fix script
+# Creates a wrapper script (requires cloning repo)
 cd Sergeant
 bash arch_fix.sh
 ```
