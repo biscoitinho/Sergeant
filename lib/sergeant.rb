@@ -33,6 +33,8 @@ class SergeantApp
     @cut_mode = false
     @last_refreshed_dir = nil
     @items = []
+    @filter_text = ''
+    @all_items = []
   end
 
   def run
@@ -99,6 +101,8 @@ class SergeantApp
           execute_terminal_command
         when '/'
           search_files
+        when 'f'
+          filter_current_view
         when 'q', 27
           close_screen
           puts @current_dir
@@ -262,9 +266,22 @@ class SergeantApp
     files.sort_by! { |f| f[:name].downcase }
 
     @items += directories + files
+    @all_items = @items.dup  # Store all items for filtering
+
+    # Apply filter if active
+    apply_filter if @filter_text && !@filter_text.empty?
 
     @selected_index = [@selected_index, @items.length - 1].min
     @selected_index = 0 if @selected_index.negative?
+  end
+
+  def apply_filter
+    return if @filter_text.empty?
+
+    # Filter items by name (case-insensitive), keep '..' entry
+    @items = @all_items.select do |item|
+      item[:name] == '..' || item[:name].downcase.include?(@filter_text.downcase)
+    end
   end
 
   def move_selection(delta)
