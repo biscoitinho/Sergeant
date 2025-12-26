@@ -212,7 +212,7 @@ class SergeantApp
   end
 
   def refresh_items
-    entries = Dir.entries(@current_dir).reject { |e| e == '.' }
+    entries = Dir.entries(@current_dir).reject { |e| e == '.' || e == '..' }
 
     @items = []
 
