@@ -271,6 +271,10 @@ class SergeantApp
     return if @items.empty?
 
     @selected_index = (@selected_index + delta).clamp(0, @items.length - 1)
+
+    # Flush input buffer to prevent lag on Windows when holding arrow keys
+    # This clears any queued key-repeat events that accumulated during processing
+    Curses.flushinp
   end
 
   def toggle_mark
