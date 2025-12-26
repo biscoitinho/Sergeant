@@ -4,6 +4,13 @@
 
 module Sergeant
   module Rendering
+    # Use ASCII icons on Windows for better terminal compatibility
+    WINDOWS = Gem.win_platform?
+    ICON_DIR = WINDOWS ? '[D] ' : '📁 '
+    ICON_FILE = WINDOWS ? '[F] ' : '📄 '
+    ICON_MARK = WINDOWS ? '* ' : '✓ '
+    ICON_SELECT = WINDOWS ? '> ' : '▶ '
+
     def draw_screen
       clear
 
@@ -127,13 +134,13 @@ module Sergeant
     end
 
     def draw_item(item, max_x, is_selected)
-      icon = item[:type] == :directory ? '📁 ' : '📄 '
+      icon = item[:type] == :directory ? ICON_DIR : ICON_FILE
 
       # Check if item is marked
       is_marked = @marked_items.include?(item[:path])
-      mark_indicator = is_marked ? '✓ ' : '  '
+      mark_indicator = is_marked ? ICON_MARK : '  '
 
-      prefix = is_selected ? '▶ ' : '  '
+      prefix = is_selected ? ICON_SELECT : '  '
 
       size_str = format_size(item[:size])
       date_str = format_date(item[:mtime])
