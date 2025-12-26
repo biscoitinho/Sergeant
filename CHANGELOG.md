@@ -5,6 +5,28 @@ All notable changes to Sergeant will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2024-12-26
+
+### Added
+- **Total size display for marked items**
+  - Status bar now shows total size of all marked files
+  - Helps users understand the size of operations before copying/cutting
+  - Automatically formatted with appropriate units (B, K, M, G)
+- **Quick filter feature** (f key)
+  - Filter current directory view without changing directories
+  - Case-insensitive real-time filtering as you type
+  - Status bar shows active filter and filtered item count
+  - Press ESC to clear filter, Enter to apply
+- **Archive peek support** (v key on archives)
+  - Preview contents of archive files without extracting
+  - Supports: .zip, .tar, .tar.gz/.tgz, .tar.bz2/.tbz, .tar.xz/.txz, .7z, .rar
+  - Uses native tools (unzip, tar, 7z, unrar) for listing contents
+  - Falls back gracefully if archive tools not installed
+
+### Changed
+- Updated help modal to reflect new features
+- Reorganized help modal with "View & Search" section for better clarity
+
 ## [1.0.2] - 2024-12-26
 
 ### Fixed

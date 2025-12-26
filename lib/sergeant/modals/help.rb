@@ -59,13 +59,16 @@ module Sergeant
           '  u                 - Unmark all items',
           '  n                 - Create new file or directory',
           '',
+          'View & Search:',
+          '  e                 - Edit file ($EDITOR, nano, nvim, vim)',
+          '  v                 - Preview file or archive contents',
+          '  f                 - Filter current directory view',
+          '  /                 - Search files (with fzf if available)',
+          '',
           'Other:',
           '  :                 - Execute terminal command',
-          '  e                 - Edit file ($EDITOR, nano, nvim, vim)',
-          '  v                 - Preview file (read-only)',
           '  o                 - Toggle ownership display',
           '  b                 - Go to bookmark',
-          '  /                 - Search files (with fzf if available)',
           '  q / ESC           - Quit and cd to current directory'
         ]
 

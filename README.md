@@ -20,14 +20,17 @@ Simple, fast, and elegant.
 - 🔍 **Git Branch Display** - Shows current git branch in header
 - 👤 **Ownership Toggle** - View file permissions and ownership (press 'o')
 - 📑 **Bookmarks** - Save and quickly navigate to favorite directories
+- 🔎 **Quick Filter** - Filter current directory view in real-time (press 'f')
 
 ### File Operations
 - 📋 **Copy/Cut/Paste** - Mark files with spacebar, copy (c), cut (x), and paste (p)
 - ✂️  **Multi-file Selection** - Mark multiple files/folders for batch operations
+- 📏 **Size Display** - See total size of marked items in status bar
 - 🗑️  **Delete with Confirmation** - Safe deletion with confirmation dialog
 - ✏️  **Rename** - Rename files and folders with pre-filled input
 - 🔄 **Conflict Resolution** - Smart handling of file conflicts (skip/overwrite/rename)
-- 📄 **File Preview** - View markdown files with glow, code files with vim/nano
+- 📄 **File Preview** - View markdown with glow, code with vim/nano, peek inside archives
+- 📦 **Archive Peek** - Preview contents of .zip, .tar.gz, .7z, .rar files without extracting
 
 ### Search & Productivity
 - 🔎 **Fuzzy Search** - Integrate with fzf for fast file finding
@@ -66,6 +69,7 @@ sudo dnf install ncurses-devel ruby-devel
 ### Optional Tools
 - **glow** - For beautiful markdown preview (`brew install glow` or `go install github.com/charmbracelet/glow@latest`)
 - **fzf** - For fuzzy file search (`brew install fzf` or `sudo apt-get install fzf`)
+- **Archive tools** - For archive preview: `unzip`, `tar`, `7z`, `unrar` (usually pre-installed on most systems)
 
 ## 🚀 Installation
 
@@ -156,7 +160,9 @@ sgt
 | `d` | Delete marked items (with confirmation) |
 | `r` | Rename current item |
 | `u` | Unmark all items |
-| `v` | Preview file (markdown/code) |
+| `n` | Create new file or directory |
+| `e` | Edit file with $EDITOR (or nano/nvim/vim) |
+| `v` | Preview file or archive contents |
 
 ### Other Commands
 
@@ -166,9 +172,11 @@ sgt
 | `↓/j` | Move down |
 | `Enter/→/l` | Open directory or preview file |
 | `←/h` | Go to parent directory |
+| `f` | Filter current directory view |
+| `/` | Search files (requires fzf) |
+| `:` | Execute terminal command in current directory |
 | `o` | Toggle ownership/permissions display |
 | `b` | Go to bookmark |
-| `/` | Search files (requires fzf) |
 | `m` | Show help modal with all key mappings |
 | `q/ESC` | Quit and cd to current directory |
 
