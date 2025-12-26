@@ -26,6 +26,7 @@ class SergeantApp
     @selected_index = 0
     @scroll_offset = 0
     @show_ownership = false
+    @last_show_ownership = false
     @config = Sergeant::Config.load_config
     @bookmarks = Sergeant::Config.load_bookmarks
     @marked_items = []
@@ -198,9 +199,10 @@ class SergeantApp
   def refresh_items_if_needed
     # Only refresh if directory has changed, or if showing ownership toggle changed
     # This prevents expensive file system operations on every keystroke
-    if @current_dir != @last_refreshed_dir
+    if @current_dir != @last_refreshed_dir || @show_ownership != @last_show_ownership
       refresh_items
       @last_refreshed_dir = @current_dir
+      @last_show_ownership = @show_ownership
     end
   end
 
@@ -233,9 +235,9 @@ class SergeantApp
       full_path = File.join(@current_dir, entry)
       begin
         stat = File.stat(full_path)
-        owner_info = get_owner_info(stat)
-        is_dir = File.directory?(full_path)
-        perms = format_permissions(stat.mode, is_dir)
+        is_dir = stat.directory?  # Use stat instead of File.directory? (saves syscall)
+        owner_info = @show_ownership ? get_owner_info(stat) : nil  # Only fetch if needed
+        perms = @show_ownership ? format_permissions(stat.mode, is_dir) : nil
 
         if is_dir
           directories << {
