@@ -114,16 +114,6 @@ sgt
 # Run with explicit ruby (temporary fix)
 ruby $(which sgt)
 ```
-
-**Alternative - Automated fix script:**
-```bash
-# Creates a wrapper script (requires cloning repo)
-cd Sergeant
-bash arch_fix.sh
-```
-
-**For detailed troubleshooting**, see [INSTALL_TROUBLESHOOTING.md](./INSTALL_TROUBLESHOOTING.md)
-
 ### Development Installation
 
 If you want to work on the gem:
