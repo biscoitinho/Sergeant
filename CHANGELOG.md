@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated help modal to reflect new features
 - Reorganized help modal with "View & Search" section for better clarity
 
+### Performance
+- **Optimized directory refresh**
+  - Only fetch owner info and permissions when ownership display is enabled
+  - Use `stat.directory?` instead of `File.directory?()` to avoid duplicate syscalls
+  - Track ownership toggle changes to refresh only when needed
+- **Added comprehensive test coverage** for performance optimizations (14 test cases)
+
 ## [1.0.2] - 2024-12-26
 
 ### Fixed
