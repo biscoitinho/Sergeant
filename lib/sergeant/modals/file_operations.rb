@@ -65,6 +65,13 @@ module Sergeant
         return unless item && item[:type] == :file
 
         file_path = item[:path]
+        file_ext = File.extname(file_path).downcase
+
+        # Check if it's an archive file
+        if archive_file?(file_ext)
+          preview_archive(file_path, file_ext)
+          return
+        end
 
         # Check if it's a text file
         unless text_file?(file_path)
@@ -76,8 +83,6 @@ module Sergeant
         close_screen
 
         begin
-          file_ext = File.extname(file_path).downcase
-
           # Use glow for markdown files if available, otherwise fall back to less
           if file_ext == '.md' && glow_available?
             system("glow -p \"#{file_path}\"")
@@ -650,6 +655,80 @@ module Sergeant
 
         # Force refresh to show any changes from the command
         force_refresh
+      end
+
+      private
+
+      def archive_file?(ext)
+        %w[.zip .tar .gz .bz2 .xz .7z .rar .tar.gz .tar.bz2 .tar.xz .tgz .tbz .txz].include?(ext) ||
+          ext.end_with?('.tar.gz', '.tar.bz2', '.tar.xz')
+      end
+
+      def preview_archive(file_path, file_ext)
+        close_screen
+
+        puts "Archive Preview: #{File.basename(file_path)}"
+        puts '─' * 80
+        puts
+
+        begin
+          # Detect archive type and use appropriate command
+          case file_ext
+          when '.zip'
+            system("unzip -l \"#{file_path}\" | less -R -F -X")
+          when '.tar'
+            system("tar -tvf \"#{file_path}\" | less -R -F -X")
+          when '.tar.gz', '.tgz', '.gz'
+            if file_path.end_with?('.tar.gz') || file_path.end_with?('.tgz')
+              system("tar -tzf \"#{file_path}\" | less -R -F -X")
+            else
+              system("gzip -l \"#{file_path}\"")
+              puts
+              puts 'Press Enter to continue...'
+              gets
+            end
+          when '.tar.bz2', '.tbz', '.bz2'
+            if file_path.end_with?('.tar.bz2') || file_path.end_with?('.tbz')
+              system("tar -tjf \"#{file_path}\" | less -R -F -X")
+            else
+              system("bzip2 -l \"#{file_path}\" 2>/dev/null || echo 'bzip2 does not support -l flag'")
+              puts
+              puts 'Press Enter to continue...'
+              gets
+            end
+          when '.tar.xz', '.txz', '.xz'
+            if file_path.end_with?('.tar.xz') || file_path.end_with?('.txz')
+              system("tar -tJf \"#{file_path}\" | less -R -F -X")
+            else
+              system("xz -l \"#{file_path}\"")
+              puts
+              puts 'Press Enter to continue...'
+              gets
+            end
+          when '.7z'
+            system("7z l \"#{file_path}\" | less -R -F -X")
+          when '.rar'
+            system("unrar l \"#{file_path}\" | less -R -F -X")
+          else
+            puts 'Archive type detected but no preview command available'
+            puts 'Press Enter to continue...'
+            gets
+          end
+        rescue StandardError => e
+          puts "Error previewing archive: #{e.message}"
+          puts 'Press Enter to continue...'
+          gets
+        end
+
+        # Restore curses screen
+        init_screen
+        if has_colors?
+          start_color
+          apply_color_theme
+        end
+        curs_set(0)
+        noecho
+        stdscr.keypad(true)
       end
     end
   end
