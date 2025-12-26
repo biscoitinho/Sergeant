@@ -26,6 +26,7 @@ class SergeantApp
     @selected_index = 0
     @scroll_offset = 0
     @show_ownership = false
+    @last_show_ownership = false
     @config = Sergeant::Config.load_config
     @bookmarks = Sergeant::Config.load_bookmarks
     @marked_items = []
@@ -33,6 +34,8 @@ class SergeantApp
     @cut_mode = false
     @last_refreshed_dir = nil
     @items = []
+    @filter_text = ''
+    @all_items = []
   end
 
   def run
@@ -99,6 +102,8 @@ class SergeantApp
           execute_terminal_command
         when '/'
           search_files
+        when 'f'
+          filter_current_view
         when 'q', 27
           close_screen
           puts @current_dir
@@ -194,9 +199,10 @@ class SergeantApp
   def refresh_items_if_needed
     # Only refresh if directory has changed, or if showing ownership toggle changed
     # This prevents expensive file system operations on every keystroke
-    if @current_dir != @last_refreshed_dir
+    if @current_dir != @last_refreshed_dir || @show_ownership != @last_show_ownership
       refresh_items
       @last_refreshed_dir = @current_dir
+      @last_show_ownership = @show_ownership
     end
   end
 
@@ -206,8 +212,7 @@ class SergeantApp
   end
 
   def refresh_items
-    entries = Dir.entries(@current_dir).reject { |e| e == '.' }
-
+    entries = Dir.entries(@current_dir).reject { |e| e == '.' || e == '..' }
     @items = []
 
     unless @current_dir == '/'
@@ -229,9 +234,9 @@ class SergeantApp
       full_path = File.join(@current_dir, entry)
       begin
         stat = File.stat(full_path)
-        owner_info = get_owner_info(stat)
-        is_dir = File.directory?(full_path)
-        perms = format_permissions(stat.mode, is_dir)
+        is_dir = stat.directory?  # Use stat instead of File.directory? (saves syscall)
+        owner_info = @show_ownership ? get_owner_info(stat) : nil  # Only fetch if needed
+        perms = @show_ownership ? format_permissions(stat.mode, is_dir) : nil
 
         if is_dir
           directories << {
@@ -262,15 +267,32 @@ class SergeantApp
     files.sort_by! { |f| f[:name].downcase }
 
     @items += directories + files
+    @all_items = @items.dup  # Store all items for filtering
+
+    # Apply filter if active
+    apply_filter if @filter_text && !@filter_text.empty?
 
     @selected_index = [@selected_index, @items.length - 1].min
     @selected_index = 0 if @selected_index.negative?
+  end
+
+  def apply_filter
+    return if @filter_text.empty?
+
+    # Filter items by name (case-insensitive), keep '..' entry
+    @items = @all_items.select do |item|
+      item[:name] == '..' || item[:name].downcase.include?(@filter_text.downcase)
+    end
   end
 
   def move_selection(delta)
     return if @items.empty?
 
     @selected_index = (@selected_index + delta).clamp(0, @items.length - 1)
+
+    # Flush input buffer to prevent lag on Windows when holding arrow keys
+    # This clears any queued key-repeat events that accumulated during processing
+    Curses.flushinp
   end
 
   def toggle_mark

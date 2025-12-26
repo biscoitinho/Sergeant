@@ -240,6 +240,130 @@ module Sergeant
         getch
         true
       end
+
+      def filter_current_view
+        max_y = lines
+        max_x = cols
+
+        modal_height = 8
+        modal_width = [70, max_x - 4].min
+        modal_y = (max_y - modal_height) / 2
+        modal_x = (max_x - modal_width) / 2
+
+        # Draw modal
+        (modal_y..(modal_y + modal_height)).each do |y|
+          setpos(y, modal_x)
+          attron(color_pair(3)) do
+            addstr(' ' * modal_width)
+          end
+        end
+
+        setpos(modal_y, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u250C#{'─' * (modal_width - 2)}\u2510")
+        end
+
+        setpos(modal_y + 1, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr('│')
+        end
+        attron(color_pair(5) | Curses::A_BOLD) do
+          addstr(' Filter Current View '.center(modal_width - 2))
+        end
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr('│')
+        end
+
+        setpos(modal_y + 2, modal_x)
+        attron(color_pair(4)) do
+          addstr("\u251C#{'─' * (modal_width - 2)}\u2524")
+        end
+
+        setpos(modal_y + 3, modal_x)
+        attron(color_pair(4)) do
+          addstr('│ ')
+        end
+        addstr('Enter text to filter files/folders (ESC to clear):'.ljust(modal_width - 4))
+        attron(color_pair(4)) do
+          addstr(' │')
+        end
+
+        setpos(modal_y + 4, modal_x)
+        attron(color_pair(4)) do
+          addstr('│ ')
+        end
+        prompt = 'Filter: '
+        attron(color_pair(5)) do
+          addstr(prompt)
+        end
+        addstr(' ' * (modal_width - 4 - prompt.length))
+        attron(color_pair(4)) do
+          addstr(' │')
+        end
+
+        setpos(modal_y + 6, modal_x)
+        attron(color_pair(4)) do
+          addstr('│')
+        end
+        attron(color_pair(4) | Curses::A_DIM) do
+          count = @all_items.length - (@all_items.any? { |i| i[:name] == '..' } ? 1 : 0)
+          addstr(" #{count} items in current directory ".center(modal_width - 2))
+        end
+        attron(color_pair(4)) do
+          addstr('│')
+        end
+
+        setpos(modal_y + modal_height - 1, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
+        end
+
+        # Input handling
+        curs_set(1)
+        echo
+        input_width = modal_width - 6 - prompt.length
+        filter_input = @filter_text.dup
+
+        setpos(modal_y + 4, modal_x + 2 + prompt.length)
+        addstr(filter_input.ljust(input_width))
+        setpos(modal_y + 4, modal_x + 2 + prompt.length + filter_input.length)
+
+        loop do
+          refresh
+          ch = getch
+
+          case ch
+          when 10, 13  # Enter
+            break
+          when 27  # ESC - clear filter
+            filter_input = ''
+            break
+          when 127, Curses::Key::BACKSPACE
+            if filter_input.length.positive?
+              filter_input = filter_input[0...-1]
+              setpos(modal_y + 4, modal_x + 2 + prompt.length)
+              addstr(filter_input.ljust(input_width))
+              setpos(modal_y + 4, modal_x + 2 + prompt.length + filter_input.length)
+            end
+          else
+            if ch.is_a?(String) && filter_input.length < input_width
+              filter_input += ch
+              setpos(modal_y + 4, modal_x + 2 + prompt.length)
+              addstr(filter_input.ljust(input_width))
+              setpos(modal_y + 4, modal_x + 2 + prompt.length + filter_input.length)
+            end
+          end
+        end
+
+        noecho
+        curs_set(0)
+
+        # Apply filter
+        @filter_text = filter_input.strip
+        @selected_index = 0
+        @scroll_offset = 0
+        force_refresh  # Force refresh to apply filter
+      end
     end
   end
 end

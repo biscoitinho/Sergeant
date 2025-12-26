@@ -20,10 +20,18 @@ module Sergeant
 
       # Build status info
       status_parts = []
-      status_parts << "Marked: #{@marked_items.length}" unless @marked_items.empty?
+      unless @marked_items.empty?
+        total_size = @marked_items.sum { |path| File.size(path) rescue 0 }
+        size_str = format_size(total_size)
+        status_parts << "Marked: #{@marked_items.length} (#{size_str.strip})"
+      end
       unless @copied_items.empty?
         mode_text = @cut_mode ? 'Cut' : 'Copied'
         status_parts << "#{mode_text}: #{@copied_items.length}"
+      end
+      unless @filter_text.empty?
+        filtered_count = @items.length - (@items.any? { |i| i[:name] == '..' } ? 1 : 0)
+        status_parts << "Filter: '#{@filter_text}' (#{filtered_count})"
       end
       status_text = status_parts.empty? ? '' : " | #{status_parts.join(' | ')}"
 
