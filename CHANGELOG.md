@@ -5,6 +5,18 @@ All notable changes to Sergeant will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2024-12-27
+
+### Fixed
+- **Windows compatibility improvements**
+  - Use ASCII icons ([D], [F], *, >) on Windows for better terminal compatibility (PR #15)
+  - Windows terminals often don't render emoji properly - now uses ASCII fallback
+  - Add notepad fallback for file preview and edit on Windows (PR #16)
+  - POSIX tools (vim, nano, less) replaced with notepad when not available
+
+### Changed
+- Reduced gem package size from 4.8MB to ~115KB by excluding media files and .DS_Store
+
 ## [1.0.3] - 2024-12-26
 
 ### Added
