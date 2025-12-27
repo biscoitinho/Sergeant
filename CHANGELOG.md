@@ -23,9 +23,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Uses native tools (unzip, tar, 7z, unrar) for listing contents
   - Falls back gracefully if archive tools not installed
 
+### Fixed
+- **Windows compatibility improvements**
+  - Use ASCII icons ([D], [F], *, >) on Windows for better terminal compatibility (PR #15)
+  - Windows terminals often don't render emoji properly - now uses ASCII fallback
+  - Add notepad fallback for file preview and edit on Windows (PR #16)
+  - POSIX tools (vim, nano, less) replaced with notepad when not available
+
 ### Changed
 - Updated help modal to reflect new features
 - Reorganized help modal with "View & Search" section for better clarity
+- Reduced gem package size from 4.8MB to ~115KB by excluding media files and .DS_Store
 
 ### Performance
 - **Optimized directory refresh**
