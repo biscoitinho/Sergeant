@@ -24,6 +24,8 @@ Gem::Specification.new do |spec|
     `git ls-files -z`.split("\x0").reject do |f|
       f.match(%r{\A(?:test|spec|features)/}) ||
         f.match(%r{\A\.}) ||
+        f.match(%r{\.DS_Store$}) ||
+        f.match(%r{\.(gif|png|jpg|jpeg|mp4|webm)$}) ||  # Exclude media files
         f == 'build.rb' ||
         f == 'install.sh' ||
         f == 'sgt.rb'
