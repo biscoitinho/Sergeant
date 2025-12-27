@@ -23,6 +23,9 @@ module Sergeant
           if editor
             # Use user's preferred editor
             system("#{editor} \"#{file_path}\"")
+          elsif Gem.win_platform?
+            # Windows: use notepad (always available)
+            system("notepad \"#{file_path}\"")
           elsif nvim_available?
             # Second fallback: nvim (modern vim)
             system("nvim \"#{file_path}\"")
@@ -83,8 +86,11 @@ module Sergeant
         close_screen
 
         begin
+          if Gem.win_platform?
+            # Windows: use notepad for preview (simpler and always works)
+            system("notepad \"#{file_path}\"")
           # Use glow for markdown files if available, otherwise fall back to less
-          if file_ext == '.md' && glow_available?
+          elsif file_ext == '.md' && glow_available?
             system("glow -p \"#{file_path}\"")
           elsif file_ext == '.md'
             system("less -R -F -X \"#{file_path}\"")
