@@ -73,7 +73,7 @@ sudo dnf install ncurses-devel ruby-devel
 
 ## 🚀 Installation
 
-### Install from RubyGems (Coming Soon)
+### Install from RubyGems
 
 Once published to RubyGems:
 
