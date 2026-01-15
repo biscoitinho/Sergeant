@@ -142,11 +142,39 @@ bundle exec bin/sgt
 # Start sergeant in current directory
 sgt
 
+# Start in specific directory
+sgt ~/Documents
+
+# Start at a bookmark
+sgt -b projects
+
 # Navigate and select
 # Arrow keys or j/k to move up/down
 # Enter or l to enter directory
 # h to go back
 # q to quit and cd to selected directory
+```
+
+### Command-Line Options
+
+```bash
+# View help and all options
+sgt --help
+
+# Show version
+sgt --version
+
+# List all bookmarks
+sgt --list-bookmarks
+
+# Start at bookmark location
+sgt -b [bookmark_name]
+
+# Debug mode (show environment info)
+sgt --debug
+
+# Disable colors
+sgt --no-color
 ```
 
 ### File Operations
