@@ -177,6 +177,37 @@ sgt --debug
 sgt --no-color
 ```
 
+### Shell Integration (cd to final directory)
+
+The `--pwd` flag enables powerful shell integration, allowing you to navigate visually in sergeant and have your shell automatically cd to the final location:
+
+```bash
+# Quick navigation function
+# Add this to your ~/.bashrc or ~/.zshrc:
+s() {
+  local dir=$(sgt --pwd "$@")
+  [[ -n "$dir" ]] && cd "$dir"
+}
+
+# Usage examples:
+s                    # Navigate from current dir, cd to final location
+s ~/projects         # Start in projects, cd to where you end up
+s -b work            # Start at work bookmark, cd to final location
+
+# Alternative one-liner (no function needed):
+cd $(sgt --pwd ~/projects)
+
+# Jump to deeply nested directory visually:
+cd $(sgt --pwd /usr/local)
+```
+
+**How it works:**
+1. Start sergeant with `--pwd` flag
+2. Navigate to your desired directory using arrow keys
+3. Press `q` to quit
+4. Sergeant outputs the final directory path
+5. Shell captures it with `$()` and cd's there
+
 ### File Operations
 
 | Key | Action |

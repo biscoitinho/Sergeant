@@ -24,6 +24,7 @@ def show_help
       -v, --version           Show version number
       -b, --bookmark NAME     Start at bookmark location
       --list-bookmarks        List all saved bookmarks
+      --pwd                   Print final directory on exit (for shell integration)
       --debug                 Show debug information and environment details
       --no-color              Disable colors (for terminals without color support)
 
@@ -35,8 +36,19 @@ def show_help
       sgt ~/Documents         Start in Documents folder
       sgt -b projects         Start at 'projects' bookmark
       sgt --list-bookmarks    Show all bookmarks
+      cd $(sgt --pwd)         Navigate and cd to final directory
       sgt --debug             Show debug info before starting
       sgt --help              Show this help
+
+    SHELL INTEGRATION:
+      Add this to your ~/.bashrc or ~/.zshrc for quick directory jumping:
+
+        s() {
+          local dir=$(sgt --pwd "$@")
+          [[ -n "$dir" ]] && cd "$dir"
+        }
+
+      Then use: s ~/projects
 
     FEATURES:
       • Navigate with arrow keys or vim bindings (hjkl)
@@ -126,6 +138,7 @@ end
 start_dir = nil
 no_color = false
 show_debug = false
+pwd_mode = false
 bookmark_name = nil
 
 i = 0
@@ -138,6 +151,8 @@ while i < ARGV.length
     show_version
   when '--debug'
     show_debug = true
+  when '--pwd'
+    pwd_mode = true
   when '--list-bookmarks'
     list_bookmarks
   when '-b', '--bookmark'
@@ -177,9 +192,15 @@ end
 
 # Run the navigator
 begin
-  SergeantApp.new(start_dir: start_dir, no_color: no_color).run
+  SergeantApp.new(start_dir: start_dir, no_color: no_color, pwd_mode: pwd_mode).run
 rescue StandardError => e
-  warn "\nSergeant error: #{e.message}"
-  warn e.backtrace.join("\n")
-  exit 1
+  # In pwd mode, don't show error details, just exit silently with current dir
+  if pwd_mode
+    puts Dir.pwd
+    exit 1
+  else
+    warn "\nSergeant error: #{e.message}"
+    warn e.backtrace.join("\n")
+    exit 1
+  end
 end

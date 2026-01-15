@@ -40,9 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Support starting in specific directory: `sgt ~/Documents`
   - Added `-b` / `--bookmark [name]` to start at a saved bookmark location
   - Added `--list-bookmarks` to display all saved bookmarks with status
+  - Added `--pwd` flag to print final directory on exit for shell integration
   - Added `--debug` flag to show environment and configuration details
   - Added `--no-color` flag for terminals without color support
   - Post-install message with quick start guide and tips
+  - Shell integration examples for quick directory jumping
 
 ### Changed
 - Updated help modal to reflect new features
