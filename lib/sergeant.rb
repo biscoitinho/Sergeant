@@ -21,12 +21,13 @@ class SergeantApp
   include Sergeant::Modals
   include Sergeant::Rendering
 
-  def initialize
-    @current_dir = Dir.pwd
+  def initialize(start_dir: nil, no_color: false)
+    @current_dir = start_dir || Dir.pwd
     @selected_index = 0
     @scroll_offset = 0
     @show_ownership = false
     @last_show_ownership = false
+    @no_color = no_color
     @config = Sergeant::Config.load_config
     @bookmarks = Sergeant::Config.load_bookmarks
     @marked_items = []
@@ -41,8 +42,8 @@ class SergeantApp
   def run
     init_screen
 
-    # Only initialize colors if terminal supports them
-    if has_colors?
+    # Only initialize colors if terminal supports them and not disabled
+    if !@no_color && has_colors?
       start_color
       apply_color_theme
     end

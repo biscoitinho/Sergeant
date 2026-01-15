@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 # Sergeant (sgt) - Interactive TUI directory navigator
-# Version: 1.0.0
 
 begin
   require 'sergeant'
@@ -13,9 +12,77 @@ rescue LoadError => e
   exit 1
 end
 
+# Parse command-line arguments
+def show_help
+  puts <<~HELP
+    Sergeant (sgt) v#{Sergeant::VERSION} - Interactive TUI Directory Navigator
+
+    USAGE:
+      sgt [OPTIONS] [DIRECTORY]
+
+    OPTIONS:
+      -h, --help       Show this help message
+      -v, --version    Show version number
+      --no-color       Disable colors (for terminals without color support)
+
+    ARGUMENTS:
+      DIRECTORY        Start in specified directory (default: current directory)
+
+    EXAMPLES:
+      sgt              Start in current directory
+      sgt ~/Documents  Start in Documents folder
+      sgt --help       Show this help
+
+    FEATURES:
+      • Navigate with arrow keys or vim bindings (hjkl)
+      • Mark files with Space, copy (c), cut (x), paste (p)
+      • Quick filter (f), fuzzy search (/), file preview (v)
+      • Archive peek for .zip, .tar.gz, and more
+      • Press 'm' in-app for complete key mappings
+
+    For more information, visit: https://github.com/biscoitinho/Sergeant
+  HELP
+  exit 0
+end
+
+def show_version
+  puts "Sergeant (sgt) version #{Sergeant::VERSION}"
+  exit 0
+end
+
+# Process arguments
+start_dir = nil
+no_color = false
+
+ARGV.each do |arg|
+  case arg
+  when '-h', '--help'
+    show_help
+  when '-v', '--version'
+    show_version
+  when '--no-color'
+    no_color = true
+  when /^-/
+    warn "Unknown option: #{arg}"
+    warn "Try 'sgt --help' for more information."
+    exit 1
+  else
+    start_dir = arg
+  end
+end
+
+# Validate and expand directory path
+if start_dir
+  start_dir = File.expand_path(start_dir)
+  unless File.directory?(start_dir)
+    warn "Error: '#{start_dir}' is not a valid directory"
+    exit 1
+  end
+end
+
 # Run the navigator
 begin
-  SergeantApp.new.run
+  SergeantApp.new(start_dir: start_dir, no_color: no_color).run
 rescue StandardError => e
   warn "\nSergeant error: #{e.message}"
   warn e.backtrace.join("\n")

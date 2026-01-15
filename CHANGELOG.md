@@ -34,6 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports: .zip, .tar, .tar.gz/.tgz, .tar.bz2/.tbz, .tar.xz/.txz, .7z, .rar
   - Uses native tools (unzip, tar, 7z, unrar) for listing contents
   - Falls back gracefully if archive tools not installed
+- **Command-line interface improvements**
+  - Added `--help` / `-h` flag to show usage and features
+  - Added `--version` / `-v` flag to show version number
+  - Support starting in specific directory: `sgt ~/Documents`
+  - Added `--no-color` flag for terminals without color support
+  - Post-install message with quick start guide and tips
 
 ### Changed
 - Updated help modal to reflect new features
