@@ -36,6 +36,25 @@ Gem::Specification.new do |spec|
   spec.executables   = ['sgt']
   spec.require_paths = ['lib']
 
+  # Post-install message
+  spec.post_install_message = <<~MSG
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║           Sergeant (sgt) installed successfully! 🎖️           ║
+    ╚═══════════════════════════════════════════════════════════════╝
+
+    Get started:
+      sgt              # Start in current directory
+      sgt ~/Documents  # Start in specific directory
+      sgt --help       # View all options
+
+    Quick tips:
+      • Use arrow keys or vim bindings (hjkl) to navigate
+      • Press 'm' for help modal with all key mappings
+      • Press 'f' to filter, 'v' to preview, Space to mark files
+
+    For documentation: https://github.com/biscoitinho/Sergeant
+  MSG
+
   # Runtime dependencies
   spec.add_dependency 'curses', '~> 1.4'
 

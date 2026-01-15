@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 # Sergeant (sgt) - Interactive TUI directory navigator
-# Version: 1.0.0
 
 begin
   require 'sergeant'
@@ -13,11 +12,195 @@ rescue LoadError => e
   exit 1
 end
 
+def show_help
+  puts <<~HELP
+    Sergeant (sgt) v#{Sergeant::VERSION} - Interactive TUI Directory Navigator
+
+    USAGE:
+      sgt [OPTIONS] [DIRECTORY]
+
+    OPTIONS:
+      -h, --help              Show this help message
+      -v, --version           Show version number
+      -b, --bookmark NAME     Start at bookmark location
+      --list-bookmarks        List all saved bookmarks
+      --pwd                   Print final directory on exit (for shell integration)
+      --debug                 Show debug information and environment details
+      --no-color              Disable colors (for terminals without color support)
+
+    ARGUMENTS:
+      DIRECTORY               Start in specified directory (default: current directory)
+
+    EXAMPLES:
+      sgt                     Start in current directory
+      sgt ~/Documents         Start in Documents folder
+      sgt -b projects         Start at 'projects' bookmark
+      sgt --list-bookmarks    Show all bookmarks
+      cd $(sgt --pwd)         Navigate and cd to final directory
+      sgt --debug             Show debug info before starting
+      sgt --help              Show this help
+
+    SHELL INTEGRATION:
+      Add this to your ~/.bashrc or ~/.zshrc for quick directory jumping:
+
+        s() {
+          local dir=$(sgt --pwd "$@")
+          [[ -n "$dir" ]] && cd "$dir"
+        }
+
+      Then use: s ~/projects
+
+    FEATURES:
+      • Navigate with arrow keys or vim bindings (hjkl)
+      • Mark files with Space, copy (c), cut (x), paste (p)
+      • Quick filter (f), fuzzy search (/), file preview (v)
+      • Archive peek for .zip, .tar.gz, and more
+      • Press 'm' in-app for complete key mappings
+
+    For more information, visit: https://github.com/biscoitinho/Sergeant
+  HELP
+  exit 0
+end
+
+def show_version
+  puts "Sergeant (sgt) version #{Sergeant::VERSION}"
+  exit 0
+end
+
+def show_debug_info
+  puts "Sergeant Debug Information"
+  puts "=" * 50
+  puts "Version:           #{Sergeant::VERSION}"
+  puts "Ruby Version:      #{RUBY_VERSION}"
+  puts "Ruby Platform:     #{RUBY_PLATFORM}"
+  puts "Current Directory: #{Dir.pwd}"
+  puts "Home Directory:    #{ENV['HOME']}"
+  puts "TERM:              #{ENV['TERM'] || 'not set'}"
+  puts "COLORTERM:         #{ENV['COLORTERM'] || 'not set'}"
+  puts "EDITOR:            #{ENV['EDITOR'] || 'not set'}"
+  puts "VISUAL:            #{ENV['VISUAL'] || 'not set'}"
+  puts "PATH:              #{ENV['PATH']}"
+  puts "\nLoad Path:"
+  $LOAD_PATH.each { |path| puts "  #{path}" }
+  puts "\nConfig File:       #{File.expand_path('~/.sgtrc')}"
+  puts "Config Exists:     #{File.exist?(File.expand_path('~/.sgtrc'))}"
+  puts "=" * 50
+  puts "\nPress Enter to continue or Ctrl+C to exit..."
+  gets
+end
+
+def list_bookmarks
+  require_relative '../lib/sergeant/config'
+  bookmarks = Sergeant::Config.load_bookmarks
+
+  if bookmarks.empty?
+    puts "No bookmarks found."
+    puts "Add bookmarks to ~/.sgtrc under [bookmarks] section:"
+    puts "\n[bookmarks]"
+    puts "home=/home/user"
+    puts "projects=~/projects"
+    exit 0
+  end
+
+  puts "Saved Bookmarks:"
+  puts "=" * 50
+  bookmarks.each do |name, path|
+    expanded = File.expand_path(path)
+    exists = File.directory?(expanded) ? "✓" : "✗"
+    puts "  #{exists} #{name.ljust(15)} → #{path}"
+  end
+  puts "=" * 50
+  puts "\nUsage: sgt -b [bookmark_name]"
+  exit 0
+end
+
+def get_bookmark_path(bookmark_name)
+  require_relative '../lib/sergeant/config'
+  bookmarks = Sergeant::Config.load_bookmarks
+
+  unless bookmarks.key?(bookmark_name)
+    warn "Error: Bookmark '#{bookmark_name}' not found"
+    warn "Available bookmarks: #{bookmarks.keys.join(', ')}"
+    warn "Use 'sgt --list-bookmarks' to see all bookmarks"
+    exit 1
+  end
+
+  path = File.expand_path(bookmarks[bookmark_name])
+  unless File.directory?(path)
+    warn "Error: Bookmark path '#{path}' does not exist"
+    exit 1
+  end
+
+  path
+end
+
+# Process arguments
+start_dir = nil
+no_color = false
+show_debug = false
+pwd_mode = false
+bookmark_name = nil
+
+i = 0
+while i < ARGV.length
+  arg = ARGV[i]
+  case arg
+  when '-h', '--help'
+    show_help
+  when '-v', '--version'
+    show_version
+  when '--debug'
+    show_debug = true
+  when '--pwd'
+    pwd_mode = true
+  when '--list-bookmarks'
+    list_bookmarks
+  when '-b', '--bookmark'
+    i += 1
+    if i >= ARGV.length
+      warn "Error: --bookmark requires a bookmark name"
+      warn "Use 'sgt --list-bookmarks' to see available bookmarks"
+      exit 1
+    end
+    bookmark_name = ARGV[i]
+  when '--no-color'
+    no_color = true
+  when /^-/
+    warn "Unknown option: #{arg}"
+    warn "Try 'sgt --help' for more information."
+    exit 1
+  else
+    start_dir = arg
+  end
+  i += 1
+end
+
+# Show debug info if requested
+show_debug_info if show_debug
+
+# Handle bookmark
+start_dir = get_bookmark_path(bookmark_name) if bookmark_name
+
+# Validate and expand directory path
+if start_dir
+  start_dir = File.expand_path(start_dir)
+  unless File.directory?(start_dir)
+    warn "Error: '#{start_dir}' is not a valid directory"
+    exit 1
+  end
+end
+
 # Run the navigator
 begin
-  SergeantApp.new.run
+  SergeantApp.new(start_dir: start_dir, no_color: no_color, pwd_mode: pwd_mode).run
 rescue StandardError => e
-  warn "\nSergeant error: #{e.message}"
-  warn e.backtrace.join("\n")
-  exit 1
+  # In pwd mode, don't show error details, just exit silently with current dir
+  if pwd_mode
+    puts Dir.pwd
+    exit 1
+  else
+    warn "\nSergeant error: #{e.message}"
+    warn e.backtrace.join("\n")
+    exit 1
+  end
 end

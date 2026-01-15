@@ -5,7 +5,22 @@ All notable changes to Sergeant will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.4] - 2024-12-27
+## [1.0.5] - 2025-01-15
+
+### Added
+- **Command-line interface improvements**
+  - Added `--help` / `-h` flag to show usage and features
+  - Added `--version` / `-v` flag to show version number
+  - Support starting in specific directory: `sgt ~/Documents`
+  - Added `-b` / `--bookmark [name]` to start at a saved bookmark location
+  - Added `--list-bookmarks` to display all saved bookmarks with status
+  - Added `--pwd` flag to print final directory on exit for shell integration
+  - Added `--debug` flag to show environment and configuration details
+  - Added `--no-color` flag for terminals without color support
+  - Post-install message with quick start guide and tips
+  - Shell integration examples for quick directory jumping
+
+## [1.0.4] - 2025-12-27
 
 ### Fixed
 - **Windows compatibility improvements**
@@ -17,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Reduced gem package size from 4.8MB to ~115KB by excluding media files and .DS_Store
 
-## [1.0.3] - 2024-12-26
+## [1.0.3] - 2025-12-26
 
 ### Added
 - **Total size display for marked items**
@@ -46,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Track ownership toggle changes to refresh only when needed
 - **Added comprehensive test coverage** for performance optimizations (14 test cases)
 
-## [1.0.2] - 2024-12-26
+## [1.0.2] - 2025-12-26
 
 ### Fixed
 - **Display issue on Arch Linux**: Added terminal color support checking
@@ -67,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added error recovery for curses screen initialization failures
 - Better compatibility with different ncurses implementations
 
-## [1.0.1] - 2024-12-24
+## [1.0.1] - 2025-12-24
 
 ### Fixed
 - **Major performance improvement**: Fixed severe input lag with large directories
@@ -78,7 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Shows load path and helpful reinstall instructions if gem fails to load
   - Displays full error details instead of silently failing
 
-## [1.0.0] - 2024-12-23
+## [1.0.0] - 2025-12-23
 
 ### Added
 - **Interactive TUI navigation** - Navigate directories with arrow keys or vim bindings (hjkl)
