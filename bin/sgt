@@ -24,6 +24,7 @@ def show_help
       -v, --version           Show version number
       -b, --bookmark NAME     Start at bookmark location
       --list-bookmarks        List all saved bookmarks
+      --restore               Restore last session (start in last directory)
       --pwd                   Print final directory on exit (for shell integration)
       --debug                 Show debug information and environment details
       --no-color              Disable colors (for terminals without color support)
@@ -35,6 +36,7 @@ def show_help
       sgt                     Start in current directory
       sgt ~/Documents         Start in Documents folder
       sgt -b projects         Start at 'projects' bookmark
+      sgt --restore           Continue from last session
       sgt --list-bookmarks    Show all bookmarks
       cd $(sgt --pwd)         Navigate and cd to final directory
       sgt --debug             Show debug info before starting
@@ -139,6 +141,7 @@ start_dir = nil
 no_color = false
 show_debug = false
 pwd_mode = false
+restore_session = false
 bookmark_name = nil
 
 i = 0
@@ -153,6 +156,8 @@ while i < ARGV.length
     show_debug = true
   when '--pwd'
     pwd_mode = true
+  when '--restore'
+    restore_session = true
   when '--list-bookmarks'
     list_bookmarks
   when '-b', '--bookmark'
@@ -192,7 +197,7 @@ end
 
 # Run the navigator
 begin
-  SergeantApp.new(start_dir: start_dir, no_color: no_color, pwd_mode: pwd_mode).run
+  SergeantApp.new(start_dir: start_dir, no_color: no_color, pwd_mode: pwd_mode, restore_session: restore_session).run
 rescue StandardError => e
   # In pwd mode, don't show error details, just exit silently with current dir
   if pwd_mode

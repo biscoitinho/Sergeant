@@ -5,6 +5,30 @@ All notable changes to Sergeant will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-01-16
+
+### Added
+- **Session persistence** (`--restore` flag)
+  - Automatically saves current directory on exit to `~/.sgt_session`
+  - Use `sgt --restore` to continue from where you left off
+  - Perfect for resuming work after restarting terminal
+- **Recent directories history** (H key)
+  - Tracks last 50 visited directories in `~/.sgt_history`
+  - Press 'H' to show history modal with quick navigation
+  - Navigate with ↑/↓, press Enter to jump to directory
+- **Enhanced error handling**
+  - New error dialog with file path and detailed error message
+  - Options: [S]kip, [R]etry, [A]bort for better error recovery
+  - Shows specific file/path that caused the error
+
+### Performance
+- **Stat caching with 5-second TTL**
+  - Cache file stat results to avoid redundant system calls
+  - 90%+ faster navigation when browsing back/forth between directories
+  - Automatic cache cleanup and memory management (max 5000 entries)
+  - Press 'R' to force refresh and clear cache manually
+  - Especially beneficial on network filesystems (NFS, SMB)
+
 ## [1.0.5] - 2025-01-15
 
 ### Added

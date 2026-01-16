@@ -170,6 +170,9 @@ sgt --list-bookmarks
 # Start at bookmark location
 sgt -b [bookmark_name]
 
+# Restore last session (continue from where you left off)
+sgt --restore
+
 # Debug mode (show environment info)
 sgt --debug
 
@@ -236,6 +239,8 @@ cd $(sgt --pwd /usr/local)
 | `:` | Execute terminal command in current directory |
 | `o` | Toggle ownership/permissions display |
 | `b` | Go to bookmark |
+| `H` | Show recent directories history |
+| `R` | Force refresh and clear cache |
 | `m` | Show help modal with all key mappings |
 | `q/ESC` | Quit and cd to current directory |
 
