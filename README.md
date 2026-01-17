@@ -37,6 +37,12 @@ Simple, fast, and elegant.
 - ❓ **Help Modal** - Press 'm' for comprehensive key mapping reference
 - 🚀 **Instant CD** - Select and change directory in one smooth motion
 
+### Performance & Session Management
+- ⚡ **Stat Caching** - Blazing fast navigation with intelligent file stat caching
+- 💾 **Session Persistence** - Continue exactly where you left off with `--restore`
+- 📚 **Directory History** - Quick access to your 50 most recent locations (press 'H')
+- 🔄 **Smart Cache Management** - Automatic memory optimization and manual refresh
+
 ## 📋 Requirements
 
 - **Ruby** 2.7 or higher (Ruby 3.x recommended)
@@ -170,6 +176,9 @@ sgt --list-bookmarks
 # Start at bookmark location
 sgt -b [bookmark_name]
 
+# Restore last session (continue from where you left off)
+sgt --restore
+
 # Debug mode (show environment info)
 sgt --debug
 
@@ -236,6 +245,8 @@ cd $(sgt --pwd /usr/local)
 | `:` | Execute terminal command in current directory |
 | `o` | Toggle ownership/permissions display |
 | `b` | Go to bookmark |
+| `H` | Show recent directories history |
+| `R` | Force refresh and clear cache |
 | `m` | Show help modal with all key mappings |
 | `q/ESC` | Quit and cd to current directory |
 

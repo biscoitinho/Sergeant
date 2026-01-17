@@ -364,6 +364,181 @@ module Sergeant
         @scroll_offset = 0
         force_refresh  # Force refresh to apply filter
       end
+
+      def show_history_modal
+        return if @directory_history.empty? && show_no_history_modal
+
+        max_y = lines
+        max_x = cols
+
+        modal_height = [@directory_history.length + 8, max_y - 4].min
+        modal_width = [70, max_x - 4].min
+        modal_y = (max_y - modal_height) / 2
+        modal_x = (max_x - modal_width) / 2
+
+        selected = 0
+        scroll_offset = 0
+
+        loop do
+          # Draw modal background
+          (modal_y..(modal_y + modal_height)).each do |y|
+            setpos(y, modal_x)
+            attron(color_pair(3)) do
+              addstr(' ' * modal_width)
+            end
+          end
+
+          # Draw border
+          setpos(modal_y, modal_x)
+          attron(color_pair(4) | Curses::A_BOLD) do
+            addstr("\u250C#{'─' * (modal_width - 2)}\u2510")
+          end
+
+          setpos(modal_y + 1, modal_x)
+          attron(color_pair(4) | Curses::A_BOLD) do
+            addstr('│')
+          end
+          attron(color_pair(5) | Curses::A_BOLD) do
+            title = ' Recent Directories '.center(modal_width - 2)
+            addstr(title)
+          end
+          attron(color_pair(4) | Curses::A_BOLD) do
+            addstr('│')
+          end
+
+          setpos(modal_y + 2, modal_x)
+          attron(color_pair(4)) do
+            addstr("\u251C#{'─' * (modal_width - 2)}\u2524")
+          end
+
+          # Draw history entries
+          visible_height = modal_height - 7
+          visible_history = @directory_history[scroll_offset...(scroll_offset + visible_height)]
+
+          visible_history.each_with_index do |dir, idx|
+            actual_idx = scroll_offset + idx
+            setpos(modal_y + 3 + idx, modal_x)
+            attron(color_pair(4)) do
+              addstr('│ ')
+            end
+
+            # Highlight selected
+            if actual_idx == selected
+              attron(color_pair(3) | Curses::A_BOLD) do
+                display_dir = dir.length > modal_width - 6 ? "...#{dir[-(modal_width - 9)..]}" : dir
+                addstr(display_dir.ljust(modal_width - 4))
+              end
+            else
+              display_dir = dir.length > modal_width - 6 ? "...#{dir[-(modal_width - 9)..]}" : dir
+              addstr(display_dir.ljust(modal_width - 4))
+            end
+
+            attron(color_pair(4)) do
+              addstr(' │')
+            end
+          end
+
+          # Fill remaining lines
+          (visible_history.length...visible_height).each do |idx|
+            setpos(modal_y + 3 + idx, modal_x)
+            attron(color_pair(4)) do
+              addstr("\u2502#{' ' * (modal_width - 2)}\u2502")
+            end
+          end
+
+          # Draw footer
+          setpos(modal_y + modal_height - 4, modal_x)
+          attron(color_pair(4)) do
+            addstr("\u251C#{'─' * (modal_width - 2)}\u2524")
+          end
+
+          setpos(modal_y + modal_height - 3, modal_x)
+          attron(color_pair(4)) do
+            addstr('│ ')
+          end
+          addstr('↑/↓: Navigate  Enter: Go  ESC: Cancel'.ljust(modal_width - 4))
+          attron(color_pair(4)) do
+            addstr(' │')
+          end
+
+          setpos(modal_y + modal_height - 2, modal_x)
+          attron(color_pair(4)) do
+            addstr('│ ')
+          end
+          addstr("#{selected + 1}/#{@directory_history.length}".ljust(modal_width - 4))
+          attron(color_pair(4)) do
+            addstr(' │')
+          end
+
+          setpos(modal_y + modal_height - 1, modal_x)
+          attron(color_pair(4)) do
+            addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
+          end
+
+          refresh
+
+          # Handle input
+          ch = getch
+          case ch
+          when Curses::Key::UP, 'k'
+            selected = [selected - 1, 0].max
+            scroll_offset = selected if selected < scroll_offset
+          when Curses::Key::DOWN, 'j'
+            selected = [selected + 1, @directory_history.length - 1].min
+            scroll_offset = selected - visible_height + 1 if selected >= scroll_offset + visible_height
+          when 10, 13  # Enter
+            target_dir = @directory_history[selected]
+            if File.directory?(target_dir)
+              @current_dir = target_dir
+              @selected_index = 0
+              @scroll_offset = 0
+              force_refresh
+            end
+            break
+          when 27, 'q'  # ESC
+            break
+          end
+        end
+      end
+
+      def show_no_history_modal
+        max_y = lines
+        max_x = cols
+
+        modal_height = 8
+        modal_width = 50
+        modal_y = (max_y - modal_height) / 2
+        modal_x = (max_x - modal_width) / 2
+
+        (modal_y..(modal_y + modal_height)).each do |y|
+          setpos(y, modal_x)
+          attron(color_pair(3)) do
+            addstr(' ' * modal_width)
+          end
+        end
+
+        setpos(modal_y + 3, modal_x)
+        attron(color_pair(4)) do
+          addstr('│ ')
+        end
+        addstr('No directory history yet.'.ljust(modal_width - 4))
+        attron(color_pair(4)) do
+          addstr(' │')
+        end
+
+        setpos(modal_y + 5, modal_x)
+        attron(color_pair(4)) do
+          addstr('│ ')
+        end
+        addstr('Press any key to continue'.ljust(modal_width - 4))
+        attron(color_pair(4)) do
+          addstr(' │')
+        end
+
+        refresh
+        getch
+        true
+      end
     end
   end
 end
