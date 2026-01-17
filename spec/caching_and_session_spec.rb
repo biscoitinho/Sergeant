@@ -66,6 +66,7 @@ RSpec.describe 'SergeantApp Caching and Session Features' do
 
       it 'removes cache entry on permission errors' do
         skip 'Cannot test permission errors as root' if Process.uid.zero?
+        skip 'Cannot test permission errors on macOS' if RUBY_PLATFORM.include?('darwin')
 
         Dir.mktmpdir do |dir|
           test_file = File.join(dir, 'test.txt')
@@ -258,16 +259,23 @@ RSpec.describe 'SergeantApp Caching and Session Features' do
           session_file = File.join(dir, '.sgt_session')
           File.write(session_file, '/nonexistent/directory')
 
-          allow(File).to receive(:expand_path).with('~/.sgt_session').and_return(session_file)
+          # Mock File.expand_path BEFORE creating the app
           allow(File).to receive(:expand_path).and_call_original
+          allow(File).to receive(:expand_path).with('~/.sgt_session').and_return(session_file)
+          allow(File).to receive(:expand_path).with('~/.sgt_history').and_return(File.join(dir, '.sgt_history'))
+
+          expected_dir = Dir.pwd
 
           app_with_restore = SergeantApp.new(restore_session: true)
           allow(app_with_restore).to receive(:init_screen)
           allow(app_with_restore).to receive(:has_colors?).and_return(false)
+          allow(app_with_restore).to receive(:curs_set)
+          allow(app_with_restore).to receive(:noecho)
+          allow(app_with_restore).to receive(:stdscr).and_return(double(keypad: true))
 
           # Should fall back to current directory
           current_dir = app_with_restore.instance_variable_get(:@current_dir)
-          expect(current_dir).to eq(Dir.pwd)
+          expect(current_dir).to eq(expected_dir)
         end
       end
     end
