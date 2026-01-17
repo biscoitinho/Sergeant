@@ -9,7 +9,7 @@ module Sergeant
         max_y = lines
         max_x = cols
 
-        modal_height = [26, max_y - 4].min  # Adaptive height
+        modal_height = [28, max_y - 4].min  # Adaptive height
         modal_width = [70, max_x - 4].min   # Adaptive width
         modal_y = (max_y - modal_height) / 2
         modal_x = (max_x - modal_width) / 2
@@ -59,13 +59,18 @@ module Sergeant
           '  u                 - Unmark all items',
           '  n                 - Create new file or directory',
           '',
+          'View & Search:',
+          '  e                 - Edit file ($EDITOR, nano, nvim, vim)',
+          '  v                 - Preview file or archive contents',
+          '  f                 - Filter current directory view',
+          '  /                 - Search files (with fzf if available)',
+          '',
           'Other:',
           '  :                 - Execute terminal command',
-          '  e                 - Edit file ($EDITOR, nano, nvim, vim)',
-          '  v                 - Preview file (read-only)',
           '  o                 - Toggle ownership display',
           '  b                 - Go to bookmark',
-          '  /                 - Search files (with fzf if available)',
+          '  H                 - Show recent directories history',
+          '  R                 - Force refresh and clear cache',
           '  q / ESC           - Quit and cd to current directory'
         ]
 

@@ -5,7 +5,108 @@ All notable changes to Sergeant will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - 2024-12-24
+## [1.0.6] - 2026-01-16
+
+### Added
+- **Session persistence** (`--restore` flag)
+  - Automatically saves current directory on exit to `~/.sgt_session`
+  - Use `sgt --restore` to continue from where you left off
+  - Perfect for resuming work after restarting terminal
+- **Recent directories history** (H key)
+  - Tracks last 50 visited directories in `~/.sgt_history`
+  - Press 'H' to show history modal with quick navigation
+  - Navigate with ↑/↓, press Enter to jump to directory
+- **Enhanced error handling**
+  - New error dialog with file path and detailed error message
+  - Options: [S]kip, [R]etry, [A]bort for better error recovery
+  - Shows specific file/path that caused the error
+
+### Performance
+- **Stat caching with 5-second TTL**
+  - Cache file stat results to avoid redundant system calls
+  - 90%+ faster navigation when browsing back/forth between directories
+  - Automatic cache cleanup and memory management (max 5000 entries)
+  - Press 'R' to force refresh and clear cache manually
+  - Especially beneficial on network filesystems (NFS, SMB)
+
+## [1.0.5] - 2025-01-15
+
+### Added
+- **Command-line interface improvements**
+  - Added `--help` / `-h` flag to show usage and features
+  - Added `--version` / `-v` flag to show version number
+  - Support starting in specific directory: `sgt ~/Documents`
+  - Added `-b` / `--bookmark [name]` to start at a saved bookmark location
+  - Added `--list-bookmarks` to display all saved bookmarks with status
+  - Added `--pwd` flag to print final directory on exit for shell integration
+  - Added `--debug` flag to show environment and configuration details
+  - Added `--no-color` flag for terminals without color support
+  - Post-install message with quick start guide and tips
+  - Shell integration examples for quick directory jumping
+
+## [1.0.4] - 2025-12-27
+
+### Fixed
+- **Windows compatibility improvements**
+  - Use ASCII icons ([D], [F], *, >) on Windows for better terminal compatibility (PR #15)
+  - Windows terminals often don't render emoji properly - now uses ASCII fallback
+  - Add notepad fallback for file preview and edit on Windows (PR #16)
+  - POSIX tools (vim, nano, less) replaced with notepad when not available
+
+### Changed
+- Reduced gem package size from 4.8MB to ~115KB by excluding media files and .DS_Store
+
+## [1.0.3] - 2025-12-26
+
+### Added
+- **Total size display for marked items**
+  - Status bar now shows total size of all marked files
+  - Helps users understand the size of operations before copying/cutting
+  - Automatically formatted with appropriate units (B, K, M, G)
+- **Quick filter feature** (f key)
+  - Filter current directory view without changing directories
+  - Case-insensitive real-time filtering as you type
+  - Status bar shows active filter and filtered item count
+  - Press ESC to clear filter, Enter to apply
+- **Archive peek support** (v key on archives)
+  - Preview contents of archive files without extracting
+  - Supports: .zip, .tar, .tar.gz/.tgz, .tar.bz2/.tbz, .tar.xz/.txz, .7z, .rar
+  - Uses native tools (unzip, tar, 7z, unrar) for listing contents
+  - Falls back gracefully if archive tools not installed
+
+### Changed
+- Updated help modal to reflect new features
+- Reorganized help modal with "View & Search" section for better clarity
+
+### Performance
+- **Optimized directory refresh**
+  - Only fetch owner info and permissions when ownership display is enabled
+  - Use `stat.directory?` instead of `File.directory?()` to avoid duplicate syscalls
+  - Track ownership toggle changes to refresh only when needed
+- **Added comprehensive test coverage** for performance optimizations (14 test cases)
+
+## [1.0.2] - 2025-12-26
+
+### Fixed
+- **Display issue on Arch Linux**: Added terminal color support checking
+  - Prevents crashes on terminals without color support
+  - Gracefully degrades when `start_color` is unavailable
+  - Fixes blank screen issue with Ruby version managers (mise, rbenv, asdf)
+
+### Added
+- **Installation troubleshooting**
+  - Comprehensive troubleshooting documentation in README
+  - Simple alias solution for Arch Linux display issues: `alias sgt='ruby "$(which sgt)"'`
+- **Better error handling**
+  - Terminal initialization now shows helpful error messages on failure
+  - Displays environment information (TERM, TTY status) to aid debugging
+
+### Technical
+- Improved terminal initialization with `has_colors?` checks before calling `start_color`
+- Added error recovery for curses screen initialization failures
+- Better compatibility with different ncurses implementations
+
+## [1.0.1] - 2025-12-24
 
 ### Fixed
 - **Major performance improvement**: Fixed severe input lag with large directories
@@ -16,7 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Shows load path and helpful reinstall instructions if gem fails to load
   - Displays full error details instead of silently failing
 
-## [1.0.0] - 2024-12-23
+## [1.0.0] - 2025-12-23
 
 ### Added
 - **Interactive TUI navigation** - Navigate directories with arrow keys or vim bindings (hjkl)

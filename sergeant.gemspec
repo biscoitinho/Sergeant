@@ -24,6 +24,8 @@ Gem::Specification.new do |spec|
     `git ls-files -z`.split("\x0").reject do |f|
       f.match(%r{\A(?:test|spec|features)/}) ||
         f.match(%r{\A\.}) ||
+        f.match(%r{\.DS_Store$}) ||
+        f.match(%r{\.(gif|png|jpg|jpeg|mp4|webm)$}) ||  # Exclude media files
         f == 'build.rb' ||
         f == 'install.sh' ||
         f == 'sgt.rb'
@@ -36,21 +38,21 @@ Gem::Specification.new do |spec|
 
   # Post-install message
   spec.post_install_message = <<~MSG
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║           Sergeant (sgt) installed successfully! 🎖️           ║
+    ╚═══════════════════════════════════════════════════════════════╝
 
-    Thanks for installing Sergeant! 🎖️
+    Get started:
+      sgt              # Start in current directory
+      sgt ~/Documents  # Start in specific directory
+      sgt --help       # View all options
 
-    Run 'sgt' to start navigating directories.
+    Quick tips:
+      • Use arrow keys or vim bindings (hjkl) to navigate
+      • Press 'm' for help modal with all key mappings
+      • Press 'f' to filter, 'v' to preview, Space to mark files
 
-    ⚠️  If sgt doesn't display anything (blank screen):
-       This can happen on Arch Linux with Ruby version managers (mise, rbenv, asdf)
-
-       Quick fix: ruby $(which sgt)
-
-       Permanent fix:
-         gem contents sergeant | grep arch_fix.sh | xargs bash
-
-       Or see: https://github.com/biscoitinho/Sergeant#troubleshooting-installation
-
+    For documentation: https://github.com/biscoitinho/Sergeant
   MSG
 
   # Runtime dependencies

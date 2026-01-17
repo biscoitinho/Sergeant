@@ -1,6 +1,7 @@
 # 🎖️ Sergeant (sgt)
 
 ![Sergeant Logo](./logo.svg)
+![highlight](./highlight.gif)
 
 **Interactive TUI Directory Navigator for Terminal - "Leave it to the Sarge!"**
 
@@ -19,19 +20,28 @@ Simple, fast, and elegant.
 - 🔍 **Git Branch Display** - Shows current git branch in header
 - 👤 **Ownership Toggle** - View file permissions and ownership (press 'o')
 - 📑 **Bookmarks** - Save and quickly navigate to favorite directories
+- 🔎 **Quick Filter** - Filter current directory view in real-time (press 'f')
 
 ### File Operations
 - 📋 **Copy/Cut/Paste** - Mark files with spacebar, copy (c), cut (x), and paste (p)
 - ✂️  **Multi-file Selection** - Mark multiple files/folders for batch operations
+- 📏 **Size Display** - See total size of marked items in status bar
 - 🗑️  **Delete with Confirmation** - Safe deletion with confirmation dialog
 - ✏️  **Rename** - Rename files and folders with pre-filled input
 - 🔄 **Conflict Resolution** - Smart handling of file conflicts (skip/overwrite/rename)
-- 📄 **File Preview** - View markdown files with glow, code files with vim/nano
+- 📄 **File Preview** - View markdown with glow, code with vim/nano, peek inside archives
+- 📦 **Archive Peek** - Preview contents of .zip, .tar.gz, .7z, .rar files without extracting
 
 ### Search & Productivity
 - 🔎 **Fuzzy Search** - Integrate with fzf for fast file finding
 - ❓ **Help Modal** - Press 'm' for comprehensive key mapping reference
 - 🚀 **Instant CD** - Select and change directory in one smooth motion
+
+### Performance & Session Management
+- ⚡ **Stat Caching** - Blazing fast navigation with intelligent file stat caching
+- 💾 **Session Persistence** - Continue exactly where you left off with `--restore`
+- 📚 **Directory History** - Quick access to your 50 most recent locations (press 'H')
+- 🔄 **Smart Cache Management** - Automatic memory optimization and manual refresh
 
 ## 📋 Requirements
 
@@ -65,10 +75,11 @@ sudo dnf install ncurses-devel ruby-devel
 ### Optional Tools
 - **glow** - For beautiful markdown preview (`brew install glow` or `go install github.com/charmbracelet/glow@latest`)
 - **fzf** - For fuzzy file search (`brew install fzf` or `sudo apt-get install fzf`)
+- **Archive tools** - For archive preview: `unzip`, `tar`, `7z`, `unrar` (usually pre-installed on most systems)
 
 ## 🚀 Installation
 
-### Install from RubyGems (Coming Soon)
+### Install from RubyGems
 
 Once published to RubyGems:
 
@@ -113,16 +124,6 @@ sgt
 # Run with explicit ruby (temporary fix)
 ruby $(which sgt)
 ```
-
-**Alternative - Automated fix script:**
-```bash
-# Creates a wrapper script (requires cloning repo)
-cd Sergeant
-bash arch_fix.sh
-```
-
-**For detailed troubleshooting**, see [INSTALL_TROUBLESHOOTING.md](./INSTALL_TROUBLESHOOTING.md)
-
 ### Development Installation
 
 If you want to work on the gem:
@@ -147,12 +148,74 @@ bundle exec bin/sgt
 # Start sergeant in current directory
 sgt
 
+# Start in specific directory
+sgt ~/Documents
+
+# Start at a bookmark
+sgt -b projects
+
 # Navigate and select
 # Arrow keys or j/k to move up/down
 # Enter or l to enter directory
 # h to go back
 # q to quit and cd to selected directory
 ```
+
+### Command-Line Options
+
+```bash
+# View help and all options
+sgt --help
+
+# Show version
+sgt --version
+
+# List all bookmarks
+sgt --list-bookmarks
+
+# Start at bookmark location
+sgt -b [bookmark_name]
+
+# Restore last session (continue from where you left off)
+sgt --restore
+
+# Debug mode (show environment info)
+sgt --debug
+
+# Disable colors
+sgt --no-color
+```
+
+### Shell Integration (cd to final directory)
+
+The `--pwd` flag enables powerful shell integration, allowing you to navigate visually in sergeant and have your shell automatically cd to the final location:
+
+```bash
+# Quick navigation function
+# Add this to your ~/.bashrc or ~/.zshrc:
+s() {
+  local dir=$(sgt --pwd "$@")
+  [[ -n "$dir" ]] && cd "$dir"
+}
+
+# Usage examples:
+s                    # Navigate from current dir, cd to final location
+s ~/projects         # Start in projects, cd to where you end up
+s -b work            # Start at work bookmark, cd to final location
+
+# Alternative one-liner (no function needed):
+cd $(sgt --pwd ~/projects)
+
+# Jump to deeply nested directory visually:
+cd $(sgt --pwd /usr/local)
+```
+
+**How it works:**
+1. Start sergeant with `--pwd` flag
+2. Navigate to your desired directory using arrow keys
+3. Press `q` to quit
+4. Sergeant outputs the final directory path
+5. Shell captures it with `$()` and cd's there
 
 ### File Operations
 
@@ -165,7 +228,9 @@ sgt
 | `d` | Delete marked items (with confirmation) |
 | `r` | Rename current item |
 | `u` | Unmark all items |
-| `v` | Preview file (markdown/code) |
+| `n` | Create new file or directory |
+| `e` | Edit file with $EDITOR (or nano/nvim/vim) |
+| `v` | Preview file or archive contents |
 
 ### Other Commands
 
@@ -175,9 +240,13 @@ sgt
 | `↓/j` | Move down |
 | `Enter/→/l` | Open directory or preview file |
 | `←/h` | Go to parent directory |
+| `f` | Filter current directory view |
+| `/` | Search files (requires fzf) |
+| `:` | Execute terminal command in current directory |
 | `o` | Toggle ownership/permissions display |
 | `b` | Go to bookmark |
-| `/` | Search files (requires fzf) |
+| `H` | Show recent directories history |
+| `R` | Force refresh and clear cache |
 | `m` | Show help modal with all key mappings |
 | `q/ESC` | Quit and cd to current directory |
 
