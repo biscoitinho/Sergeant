@@ -348,6 +348,93 @@ module Sergeant
         end
       end
 
+      def draw_progress_modal(title, total)
+        max_y = lines
+        max_x = cols
+
+        modal_width = [60, max_x - 4].min
+        modal_height = 7
+        modal_y = (max_y - modal_height) / 2
+        modal_x = (max_x - modal_width) / 2
+
+        @progress_modal = { y: modal_y, x: modal_x, width: modal_width, total: total }
+
+        # Draw background
+        (modal_y..(modal_y + modal_height)).each do |y|
+          setpos(y, modal_x)
+          attron(color_pair(3)) { addstr(' ' * modal_width) }
+        end
+
+        # Top border
+        setpos(modal_y, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u250C#{'─' * (modal_width - 2)}\u2510")
+        end
+
+        # Title row
+        setpos(modal_y + 1, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) { addstr('│') }
+        attron(color_pair(5) | Curses::A_BOLD) { addstr(" #{title} ".center(modal_width - 2)) }
+        attron(color_pair(4) | Curses::A_BOLD) { addstr('│') }
+
+        # Separator
+        setpos(modal_y + 2, modal_x)
+        attron(color_pair(4)) { addstr("\u251C#{'─' * (modal_width - 2)}\u2524") }
+
+        # Filename row (blank initially)
+        setpos(modal_y + 3, modal_x)
+        attron(color_pair(4)) { addstr('│ ') }
+        addstr(' ' * (modal_width - 4))
+        attron(color_pair(4)) { addstr(' │') }
+
+        # Spacer row
+        setpos(modal_y + 4, modal_x)
+        attron(color_pair(4)) { addstr("\u2502#{' ' * (modal_width - 2)}\u2502") }
+
+        # Progress bar row (blank initially)
+        setpos(modal_y + 5, modal_x)
+        attron(color_pair(4)) { addstr('│ ') }
+        addstr(' ' * (modal_width - 4))
+        attron(color_pair(4)) { addstr(' │') }
+
+        # Bottom border
+        setpos(modal_y + 6, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u2514#{'─' * (modal_width - 2)}\u2518")
+        end
+
+        refresh
+      end
+
+      def update_progress_modal(current, total, filename)
+        return unless @progress_modal
+
+        modal_y  = @progress_modal[:y]
+        modal_x  = @progress_modal[:x]
+        modal_width = @progress_modal[:width]
+        inner_width = modal_width - 4 # between '│ ' and ' │'
+
+        # Update filename line
+        setpos(modal_y + 3, modal_x + 2)
+        display_name = filename.to_s
+        display_name = "...#{display_name[-(inner_width - 3)..]}" if display_name.length > inner_width
+        addstr(display_name.ljust(inner_width))
+
+        # Build progress bar
+        percent   = total > 0 ? (current.to_f / total * 100).round : 0
+        count_str = "#{current}/#{total} (#{percent}%)"
+        bar_outer = [inner_width - count_str.length - 1, 3].max # 1 space between bar and count
+        bar_inner = bar_outer - 2 # subtract [ and ]
+        filled    = total > 0 ? (current.to_f / total * bar_inner).round : 0
+        empty     = bar_inner - filled
+
+        bar = "[#{'█' * filled}#{'░' * empty}] #{count_str}"
+        setpos(modal_y + 5, modal_x + 2)
+        addstr(bar.ljust(inner_width))
+
+        refresh
+      end
+
       def show_error_with_retry(filepath, error_message)
         max_y = lines
         max_x = cols
