@@ -131,11 +131,18 @@ module Sergeant
         error_count = 0
         errors = []
 
+        total = @copied_items.count { |p| File.exist?(p) }
+        operation = @cut_mode ? 'Moving' : 'Copying'
+        draw_progress_modal("#{operation} Files", total)
+        current = 0
+
         @copied_items.each do |source_path|
           next unless File.exist?(source_path)
 
           filename = File.basename(source_path)
           dest_path = File.join(@current_dir, filename)
+          current += 1
+          update_progress_modal(current, total, filename)
 
           begin
             if File.exist?(dest_path)
@@ -166,6 +173,8 @@ module Sergeant
             errors << "#{filename}: #{e.message}"
           end
         end
+
+        @progress_modal = nil
 
         # Clean up after operation
         @marked_items.clear
@@ -204,18 +213,27 @@ module Sergeant
         error_count = 0
         errors = []
 
+        total = @marked_items.count { |p| File.exist?(p) }
+        draw_progress_modal('Deleting Files', total)
+        current = 0
+
         @marked_items.each do |item_path|
           next unless File.exist?(item_path)
+
+          filename = File.basename(item_path)
+          current += 1
+          update_progress_modal(current, total, filename)
 
           begin
             FileUtils.rm_rf(item_path)
             success_count += 1
           rescue StandardError => e
             error_count += 1
-            filename = File.basename(item_path)
             errors << "#{filename}: #{e.message}"
           end
         end
+
+        @progress_modal = nil
 
         # Clear marked items after deletion
         @marked_items.clear
