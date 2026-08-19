@@ -21,6 +21,10 @@ class SergeantApp
   include Sergeant::Modals
   include Sergeant::Rendering
 
+  # Side preview panel content limits
+  PREVIEW_LINE_LIMIT = 500
+  PREVIEW_LINE_MAX_BYTES = 2000
+
   def initialize(start_dir: nil, no_color: false, pwd_mode: false, restore_session: false)
     @current_dir = start_dir || Dir.pwd
     @selected_index = 0
@@ -38,6 +42,13 @@ class SergeantApp
     @items = []
     @filter_text = ''
     @all_items = []
+
+    # Side preview panel
+    @show_preview = true
+    @last_preview_path = :unset
+    @preview_kind = :empty
+    @preview_item = nil
+    @preview_lines = []
 
     # Stat caching for performance
     @stat_cache = {}
@@ -74,6 +85,7 @@ class SergeantApp
       loop do
         # Only refresh items when directory changes, not on every keystroke
         refresh_items_if_needed
+        update_preview_if_needed
         draw_screen
 
         key = getch
@@ -95,6 +107,9 @@ class SergeantApp
           goto_bookmark
         when 'o'
           @show_ownership = !@show_ownership
+        when 'P'
+          @show_preview = !@show_preview
+          @last_preview_path = :unset
         when 'e'
           edit_file
         when 'v'
@@ -165,6 +180,10 @@ class SergeantApp
     init_pair(4, Sergeant::Config.get_color(@config['header']), Curses::COLOR_BLACK)
     init_pair(5, Sergeant::Config.get_color(@config['path']), Curses::COLOR_BLACK)
     init_pair(6, Sergeant::Config.get_color(@config['git_branch']), Curses::COLOR_BLACK)
+    init_pair(7, Sergeant::Config.get_color(@config['archives']), Curses::COLOR_BLACK)
+    init_pair(8, Sergeant::Config.get_color(@config['media']), Curses::COLOR_BLACK)
+    init_pair(9, Sergeant::Config.get_color(@config['code']), Curses::COLOR_BLACK)
+    init_pair(10, Sergeant::Config.get_color(@config['executables']), Curses::COLOR_BLACK)
   end
 
   def search_files
@@ -335,6 +354,69 @@ class SergeantApp
 
     # Also clear cache for current directory
     clear_cache_for_directory(@current_dir)
+
+    # The selected item's content may have changed too
+    @last_preview_path = :unset
+  end
+
+  # Side preview panel
+
+  def update_preview_if_needed
+    return unless @show_preview
+
+    item = @items[@selected_index]
+    path = item && item[:path]
+
+    # Only rebuild the preview when the selection actually points at a new
+    # path - never on every keystroke/redraw, to keep this cheap even in
+    # directories with many files.
+    return if path == @last_preview_path
+
+    @last_preview_path = path
+    @preview_item = item
+    @preview_kind, @preview_lines = build_preview(item)
+  end
+
+  def build_preview(item)
+    return [:empty, []] unless item
+    return [:parent, []] if item[:name] == '..'
+
+    if item[:type] == :directory
+      [:directory, build_directory_preview(item[:path])]
+    elsif text_file?(item[:path])
+      [:text, build_text_preview(item[:path])]
+    else
+      [:binary, []]
+    end
+  end
+
+  def build_directory_preview(path)
+    names = []
+
+    # each_child is lazy, so even a directory with huge numbers of entries
+    # only costs us PREVIEW_LINE_LIMIT reads, not a full scan.
+    Dir.each_child(path) do |name|
+      names << name
+      break if names.length >= PREVIEW_LINE_LIMIT
+    end
+
+    names.sort_by(&:downcase)
+  rescue Errno::EACCES, Errno::ENOENT, Errno::ENOTDIR
+    []
+  end
+
+  def build_text_preview(path)
+    lines = []
+
+    File.foreach(path, mode: 'rb') do |line|
+      text = line.byteslice(0, PREVIEW_LINE_MAX_BYTES).to_s.chomp
+      lines << text.force_encoding('UTF-8').scrub('?').gsub("\t", '    ')
+      break if lines.length >= PREVIEW_LINE_LIMIT
+    end
+
+    lines
+  rescue StandardError
+    []
   end
 
   def refresh_items
@@ -384,7 +466,8 @@ class SergeantApp
             size: stat.size,
             mtime: stat.mtime,
             owner: owner_info,
-            perms: perms
+            perms: perms,
+            mode: stat.mode
           }
         end
       rescue Errno::EACCES, Errno::ENOENT

@@ -68,6 +68,7 @@ module Sergeant
           'Other:',
           '  :                 - Execute terminal command',
           '  o                 - Toggle ownership display',
+          '  P                 - Toggle side preview panel',
           '  b                 - Go to bookmark',
           '  H                 - Show recent directories history',
           '  R                 - Force refresh and clear cache',

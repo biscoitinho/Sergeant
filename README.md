@@ -15,7 +15,8 @@ Simple, fast, and elegant.
 ### Navigation & Display
 - 🗂️  **Visual Directory Navigation** - See all directories and files at a glance
 - ⌨️  **Keyboard Driven** - Arrow keys, vim bindings (hjkl), and shortcuts
-- 🎨 **Color-Coded Display** - Directories in cyan, files grayed out
+- 🎨 **Color-Coded Display** - Directories in cyan; files colored by type (code, archives, media, executables)
+- 👀 **Live Preview Pane** - Text files and directory contents preview in a side panel as you move (press 'P' to toggle)
 - 📊 **Smart Scrolling** - Handles directories with hundreds of items
 - 🔍 **Git Branch Display** - Shows current git branch in header
 - 👤 **Ownership Toggle** - View file permissions and ownership (press 'o')
@@ -244,6 +245,7 @@ cd $(sgt --pwd /usr/local)
 | `/` | Search files (requires fzf) |
 | `:` | Execute terminal command in current directory |
 | `o` | Toggle ownership/permissions display |
+| `P` | Toggle side preview panel |
 | `b` | Go to bookmark |
 | `H` | Show recent directories history |
 | `R` | Force refresh and clear cache |
@@ -264,6 +266,10 @@ selected_fg=black
 header=yellow
 path=green
 git_branch=magenta
+archives=red
+media=magenta
+code=blue
+executables=green
 
 # Bookmarks
 [bookmarks]

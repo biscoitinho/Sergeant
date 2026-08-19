@@ -11,11 +11,39 @@ module Sergeant
     ICON_MARK = WINDOWS ? '* ' : '✓ '
     ICON_SELECT = WINDOWS ? '> ' : '▶ '
 
+    # Side preview panel only kicks in once the terminal is wide enough that
+    # both panes stay readable; below that it just doesn't fit.
+    MIN_PREVIEW_TOTAL_WIDTH = 100
+    MIN_PREVIEW_WIDTH = 24
+    PREVIEW_WIDTH_RATIO = 0.35
+
+    # Maps file_category (Sergeant::Utils) to the color pair set up in
+    # Sergeant#apply_color_theme (pairs 7-10).
+    FILE_CATEGORY_COLOR_PAIRS = {
+      archive: 7,
+      media: 8,
+      code: 9,
+      executable: 10
+    }.freeze
+
     def draw_screen
-      clear
+      # `erase` only rewrites the virtual buffer; `refresh` then diffs it
+      # against the physical screen and repaints just the changed cells.
+      # `clear` forces a full physical blank-then-redraw on every call,
+      # which flickers visibly on fast terminals like Alacritty.
+      erase
 
       max_y = lines - 1
       max_x = cols
+
+      preview_enabled = @show_preview && max_x >= MIN_PREVIEW_TOTAL_WIDTH
+      if preview_enabled
+        preview_width = [(max_x * PREVIEW_WIDTH_RATIO).to_i, MIN_PREVIEW_WIDTH].max
+        list_width = max_x - preview_width - 1
+      else
+        preview_width = 0
+        list_width = max_x
+      end
 
       setpos(0, 0)
       attron(color_pair(4) | Curses::A_BOLD) do
@@ -42,9 +70,11 @@ module Sergeant
       end
       status_text = status_parts.empty? ? '' : " | #{status_parts.join(' | ')}"
 
+      status_width = list_width
+
       if branch
         branch_text = " [#{branch}]"
-        path_max_length = max_x - 4 - branch_text.length - status_text.length
+        path_max_length = status_width - 4 - branch_text.length - status_text.length
         path_display = @current_dir.length > path_max_length ? "...#{@current_dir[(-path_max_length + 3)..]}" : @current_dir
 
         attron(color_pair(5)) do
@@ -58,9 +88,9 @@ module Sergeant
             addstr(status_text)
           end
         end
-        remaining = max_x - 2 - path_display.length - branch_text.length - status_text.length
+        remaining = status_width - 2 - path_display.length - branch_text.length - status_text.length
       else
-        path_max_length = max_x - 4 - status_text.length
+        path_max_length = status_width - 4 - status_text.length
         path_display = @current_dir.length > path_max_length ? "...#{@current_dir[(-path_max_length + 3)..]}" : @current_dir
 
         attron(color_pair(5)) do
@@ -71,7 +101,7 @@ module Sergeant
             addstr(status_text)
           end
         end
-        remaining = max_x - 2 - path_display.length - status_text.length
+        remaining = status_width - 2 - path_display.length - status_text.length
       end
       addstr(''.ljust(remaining)) if remaining.positive?
 
@@ -103,18 +133,8 @@ module Sergeant
 
         is_selected = actual_index == @selected_index
 
-        if is_selected
-          attron(color_pair(3) | Curses::A_BOLD) do
-            draw_item(item, max_x, true)
-          end
-        elsif item[:type] == :directory
-          attron(color_pair(1)) do
-            draw_item(item, max_x, false)
-          end
-        else
-          attron(color_pair(2) | Curses::A_DIM) do
-            draw_item(item, max_x, false)
-          end
+        attron(item_attributes(item, is_selected)) do
+          draw_item(item, list_width, is_selected)
         end
       end
 
@@ -124,13 +144,26 @@ module Sergeant
         scroll_pos = (@scroll_offset.to_f / (total - visible)) * (visible - 1)
         scroll_pos = scroll_pos.round.clamp(0, visible - 1)
 
-        setpos(3 + scroll_pos, max_x - 1)
+        setpos(3 + scroll_pos, list_width - 1)
         attron(color_pair(4) | Curses::A_BOLD) do
           addstr('█')
         end
       end
 
+      draw_preview_panel(list_width, preview_width, max_y, visible_lines) if preview_enabled
+
       refresh
+    end
+
+    # Which curses attributes to draw a list row with: selection highlight
+    # wins, then directories, then a file's type-based color (falling back
+    # to the plain dimmed file color when its category has none).
+    def item_attributes(item, is_selected)
+      return color_pair(3) | Curses::A_BOLD if is_selected
+      return color_pair(1) if item[:type] == :directory
+
+      pair = FILE_CATEGORY_COLOR_PAIRS[file_category(item)]
+      pair ? color_pair(pair) : (color_pair(2) | Curses::A_DIM)
     end
 
     def draw_item(item, max_x, is_selected)
@@ -170,6 +203,100 @@ module Sergeant
                 end
 
       addstr(display)
+    end
+
+    # Draws the divider, title row and content of the side preview panel.
+    # Content itself is precomputed by Sergeant#update_preview_if_needed -
+    # this method only ever paints what's already in @preview_lines, so it
+    # stays cheap even though draw_screen runs on every keystroke.
+    def draw_preview_panel(list_width, preview_width, max_y, visible_lines)
+      col = list_width + 1
+      width = preview_width - 1
+      return if width <= 1
+
+      draw_preview_divider(list_width, max_y)
+      draw_preview_title(col, width)
+
+      case @preview_kind
+      when :text
+        if @preview_lines.empty?
+          draw_preview_message(col, width, '(empty file)')
+        else
+          draw_preview_lines(col, width, visible_lines, @preview_lines, color_pair(2))
+        end
+      when :directory
+        if @preview_lines.empty?
+          draw_preview_message(col, width, '(empty directory)')
+        else
+          names = @preview_lines.map { |name| "  #{name}" }
+          draw_preview_lines(col, width, visible_lines, names, color_pair(1))
+        end
+      else
+        draw_preview_message(col, width, preview_placeholder_message)
+      end
+    end
+
+    def draw_preview_divider(list_width, max_y)
+      setpos(0, list_width)
+      attron(color_pair(4) | Curses::A_BOLD) { addstr('┬') }
+
+      (1...max_y).each do |row|
+        next if row == 2
+
+        setpos(row, list_width)
+        attron(color_pair(4)) { addstr('│') }
+      end
+
+      setpos(2, list_width)
+      attron(color_pair(4)) { addstr('┼') }
+    end
+
+    def draw_preview_title(col, width)
+      label = case @preview_kind
+              when :directory then "#{ICON_DIR}#{@preview_item[:name]}"
+              when :text, :binary then "#{ICON_FILE}#{@preview_item[:name]}"
+              else ''
+              end
+
+      setpos(1, col)
+      attron(color_pair(5) | Curses::A_BOLD) do
+        addstr(truncate_for_preview(label, width).ljust(width))
+      end
+    end
+
+    def draw_preview_lines(col, width, visible_lines, source_lines, pair)
+      visible_lines.times do |idx|
+        setpos(idx + 3, col)
+        line = source_lines[idx]
+        attron(pair) do
+          addstr((line ? truncate_for_preview(line, width) : '').ljust(width))
+        end
+      end
+    end
+
+    def draw_preview_message(col, width, message)
+      setpos(3, col)
+      attron(color_pair(2) | Curses::A_DIM) do
+        addstr(truncate_for_preview(message, width).ljust(width))
+      end
+    end
+
+    def truncate_for_preview(text, width)
+      return text if text.length <= width
+      return text[0, width].to_s if width <= 1
+
+      "#{text[0, width - 1]}…"
+    end
+
+    def preview_placeholder_message
+      case @preview_kind
+      when :empty then '(empty directory)'
+      when :binary
+        size = @preview_item && @preview_item[:size]
+        size ? "(no preview - #{format_size(size).strip})" : '(no preview available)'
+      else
+        ''
+      end
     end
   end
 end
