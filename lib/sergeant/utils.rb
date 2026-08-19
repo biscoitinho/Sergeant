@@ -4,6 +4,28 @@
 
 module Sergeant
   module Utils
+    ARCHIVE_EXTENSIONS = %w[.zip .tar .gz .tgz .bz2 .tbz2 .xz .txz .7z .rar .zst .lz .lzma .cab .iso .deb .rpm .apk
+                            .jar .war].freeze
+    MEDIA_EXTENSIONS = %w[.png .jpg .jpeg .gif .bmp .svg .webp .ico .tiff .tif .heic .avif
+                          .mp4 .mkv .avi .mov .wmv .flv .webm .m4v .mpg .mpeg
+                          .mp3 .wav .flac .ogg .aac .m4a .wma .opus].freeze
+    CODE_EXTENSIONS = %w[.rb .py .js .jsx .mjs .cjs .ts .tsx .go .rs .c .cpp .cc .h .hpp .java .kt .kts .swift .php
+                         .sh .bash .zsh .fish .lua .pl .pm .r .scala .clj .cljs .ex .exs .erl .hs .ml .mli .sql
+                         .html .htm .css .scss .sass .less .json .yaml .yml .toml .xml .vue .svelte].freeze
+
+    # Which color pair (see Sergeant#apply_color_theme) to use for a file,
+    # based on its extension, falling back to the executable bit. Directories
+    # are colored separately by draw_screen and never reach this method.
+    def file_category(item)
+      ext = File.extname(item[:name]).downcase
+      return :archive if ARCHIVE_EXTENSIONS.include?(ext)
+      return :media if MEDIA_EXTENSIONS.include?(ext)
+      return :code if CODE_EXTENSIONS.include?(ext)
+      return :executable if item[:mode] && (item[:mode] & 0o111).nonzero? && ext.empty?
+
+      :file
+    end
+
     def get_git_branch
       return nil unless Dir.exist?(File.join(@current_dir, '.git'))
 

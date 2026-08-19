@@ -22,7 +22,11 @@ module Sergeant
       'selected_fg' => 'black',
       'header' => 'yellow',
       'path' => 'green',
-      'git_branch' => 'magenta'
+      'git_branch' => 'magenta',
+      'archives' => 'red',
+      'media' => 'magenta',
+      'code' => 'blue',
+      'executables' => 'green'
     }.freeze
 
     MINIMAL_CONFIG_TEMPLATE = <<~CONFIG.freeze
@@ -35,6 +39,10 @@ module Sergeant
       header=yellow
       path=green
       git_branch=magenta
+      archives=red
+      media=magenta
+      code=blue
+      executables=green
 
       # Bookmarks
       [bookmarks]
