@@ -26,6 +26,18 @@ module Sergeant
       executable: 10
     }.freeze
 
+    # Maps token_category (Sergeant::Utils) to the syntax-highlight color
+    # pairs set up in Sergeant#apply_color_theme (pairs 11-16).
+    PREVIEW_TOKEN_COLOR_PAIRS = {
+      keyword: 11,
+      string: 12,
+      comment: 13,
+      number: 14,
+      function: 15,
+      constant: 15,
+      error: 16
+    }.freeze
+
     def draw_screen
       # `erase` only rewrites the virtual buffer; `refresh` then diffs it
       # against the physical screen and repaints just the changed cells.
@@ -222,7 +234,7 @@ module Sergeant
         if @preview_lines.empty?
           draw_preview_message(col, width, '(empty file)')
         else
-          draw_preview_lines(col, width, visible_lines, @preview_lines, color_pair(2))
+          draw_preview_highlighted_lines(col, width, visible_lines, @preview_lines)
         end
       when :directory
         if @preview_lines.empty?
@@ -272,6 +284,37 @@ module Sergeant
           addstr((line ? truncate_for_preview(line, width) : '').ljust(width))
         end
       end
+    end
+
+    # Like draw_preview_lines, but each line is an array of
+    # {text:, category:} segments (built by Sergeant#build_text_preview via
+    # Rouge) instead of a single string, so every token can carry its own
+    # syntax-highlight color.
+    def draw_preview_highlighted_lines(col, width, visible_lines, lines)
+      visible_lines.times do |idx|
+        setpos(idx + 3, col)
+        draw_preview_segments(lines[idx] || [], width)
+      end
+    end
+
+    def draw_preview_segments(segments, width)
+      remaining = width
+
+      segments.each do |segment|
+        break if remaining <= 0
+
+        text = segment[:text]
+        chunk = text.length > remaining ? text[0, remaining] : text
+
+        attron(preview_token_attr(segment[:category])) { addstr(chunk) }
+        remaining -= chunk.length
+      end
+
+      attron(color_pair(2)) { addstr(' ' * remaining) } if remaining.positive?
+    end
+
+    def preview_token_attr(category)
+      color_pair(PREVIEW_TOKEN_COLOR_PAIRS[category] || 2)
     end
 
     def draw_preview_message(col, width, message)

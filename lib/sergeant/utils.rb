@@ -26,6 +26,22 @@ module Sergeant
       :file
     end
 
+    # Maps a Rouge token's qualified name (e.g. "Literal.String.Double") to
+    # one of the syntax-highlight color pairs set up in
+    # Sergeant#apply_color_theme. Unmatched token types (Text, Punctuation,
+    # Operator, ...) return nil, meaning "draw in the default text color".
+    def token_category(qualname)
+      case qualname
+      when /\AComment/ then :comment
+      when /\AKeyword/ then :keyword
+      when /\ALiteral\.String/ then :string
+      when /\ALiteral\.Number/ then :number
+      when /\AName\.(Function|Class|Namespace|Tag)/ then :function
+      when /\AName\.(Constant|Builtin|Variable\.Class)/ then :constant
+      when /\A(Error|Generic\.Error|Generic\.Traceback)/ then :error
+      end
+    end
+
     def get_git_branch
       return nil unless Dir.exist?(File.join(@current_dir, '.git'))
 
