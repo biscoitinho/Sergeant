@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.0.8] - 2026-08-19
+
+### Fixed
+- **Screen flicker on every keypress in fast terminals**
+  - `draw_screen` was calling curses' `clear`, forcing a full blank-then-redraw on each keystroke
+  - Barely visible on slower/buffered terminals but very noticeable on fast, immediate-mode terminals like Alacritty
+  - Switched to `erase`, which only rewrites the virtual buffer so `refresh` repaints just the changed cells
+
+### Added
+- **File-type colors** - files are now color-coded by category (archives, media, code, executables) in addition to the existing directory/file distinction, configurable via `~/.sgtrc`
+- **Live side preview panel** (`P` key) - shows the first lines of a text file or a directory's contents in a panel next to the list, without leaving the UI or shelling out to a pager. Appears automatically once the terminal is wide enough
+
 ## [1.0.7] - 2026-03-09
 
 ### Added
