@@ -2,8 +2,6 @@
 
 source 'https://rubygems.org'
 
-ruby '>= 2.7.0'
-
 # Terminal UI library
 gem 'curses', '~> 1.4'
 
