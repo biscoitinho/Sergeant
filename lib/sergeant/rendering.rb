@@ -12,7 +12,11 @@ module Sergeant
     ICON_SELECT = WINDOWS ? '> ' : '▶ '
 
     def draw_screen
-      clear
+      # `erase` only rewrites the virtual buffer; `refresh` then diffs it
+      # against the physical screen and repaints just the changed cells.
+      # `clear` forces a full physical blank-then-redraw on every call,
+      # which flickers visibly on fast terminals like Alacritty.
+      erase
 
       max_y = lines - 1
       max_x = cols
