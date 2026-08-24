@@ -245,6 +245,7 @@ cd $(sgt --pwd /usr/local)
 | `:` | Execute terminal command in current directory |
 | `o` | Toggle ownership/permissions display |
 | `P` | Toggle side preview panel |
+| `[` / `]` | Shrink / grow side preview panel |
 | `b` | Go to bookmark |
 | `H` | Show recent directories history |
 | `R` | Force refresh and clear cache |
