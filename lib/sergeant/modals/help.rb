@@ -9,39 +9,6 @@ module Sergeant
         max_y = lines
         max_x = cols
 
-        modal_height = [28, max_y - 4].min  # Adaptive height
-        modal_width = [70, max_x - 4].min   # Adaptive width
-        modal_y = (max_y - modal_height) / 2
-        modal_x = (max_x - modal_width) / 2
-
-        (modal_y..(modal_y + modal_height)).each do |y|
-          setpos(y, modal_x)
-          attron(color_pair(3)) do
-            addstr(' ' * modal_width)
-          end
-        end
-
-        setpos(modal_y, modal_x)
-        attron(color_pair(4) | Curses::A_BOLD) do
-          addstr("\u250C#{'─' * (modal_width - 2)}\u2510")
-        end
-
-        setpos(modal_y + 1, modal_x)
-        attron(color_pair(4) | Curses::A_BOLD) do
-          addstr('│')
-        end
-        attron(color_pair(5) | Curses::A_BOLD) do
-          addstr(' Key Mappings '.center(modal_width - 2))
-        end
-        attron(color_pair(4) | Curses::A_BOLD) do
-          addstr('│')
-        end
-
-        setpos(modal_y + 2, modal_x)
-        attron(color_pair(4)) do
-          addstr("\u251C#{'─' * (modal_width - 2)}\u2524")
-        end
-
         help_lines = [
           'Navigation:',
           '  ↑/k               - Move up',
@@ -74,6 +41,42 @@ module Sergeant
           '  R                 - Force refresh and clear cache',
           '  q / ESC           - Quit and cd to current directory'
         ]
+
+        # Height must track the number of help lines - a fixed cap silently
+        # truncates the bottom of the list (including "quit"!) every time a
+        # new key mapping is added without also bumping the cap by hand.
+        modal_height = [help_lines.length + 4, max_y - 4].min
+        modal_width = [70, max_x - 4].min   # Adaptive width
+        modal_y = (max_y - modal_height) / 2
+        modal_x = (max_x - modal_width) / 2
+
+        (modal_y..(modal_y + modal_height)).each do |y|
+          setpos(y, modal_x)
+          attron(color_pair(3)) do
+            addstr(' ' * modal_width)
+          end
+        end
+
+        setpos(modal_y, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr("\u250C#{'─' * (modal_width - 2)}\u2510")
+        end
+
+        setpos(modal_y + 1, modal_x)
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr('│')
+        end
+        attron(color_pair(5) | Curses::A_BOLD) do
+          addstr(' Key Mappings '.center(modal_width - 2))
+        end
+        attron(color_pair(4) | Curses::A_BOLD) do
+          addstr('│')
+        end
+
+        setpos(modal_y + 2, modal_x)
+        attron(color_pair(4)) do
+          addstr("\u251C#{'─' * (modal_width - 2)}\u2524")
+        end
 
         help_lines.each_with_index do |line, idx|
           break if idx >= modal_height - 4  # Stop if we run out of vertical space
