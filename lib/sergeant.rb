@@ -46,6 +46,7 @@ class SergeantApp
 
     # Side preview panel
     @show_preview = true
+    @preview_width_ratio = Sergeant::Rendering::PREVIEW_WIDTH_RATIO_DEFAULT
     @last_preview_path = :unset
     @preview_kind = :empty
     @preview_item = nil
@@ -111,6 +112,12 @@ class SergeantApp
         when 'P'
           @show_preview = !@show_preview
           @last_preview_path = :unset
+        when '['
+          step = Sergeant::Rendering::PREVIEW_WIDTH_RATIO_STEP
+          @preview_width_ratio = [@preview_width_ratio - step, Sergeant::Rendering::PREVIEW_WIDTH_RATIO_MIN].max
+        when ']'
+          step = Sergeant::Rendering::PREVIEW_WIDTH_RATIO_STEP
+          @preview_width_ratio = [@preview_width_ratio + step, Sergeant::Rendering::PREVIEW_WIDTH_RATIO_MAX].min
         when 'e'
           edit_file
         when 'v'

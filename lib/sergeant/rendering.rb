@@ -15,7 +15,10 @@ module Sergeant
     # both panes stay readable; below that it just doesn't fit.
     MIN_PREVIEW_TOTAL_WIDTH = 100
     MIN_PREVIEW_WIDTH = 24
-    PREVIEW_WIDTH_RATIO = 0.35
+    PREVIEW_WIDTH_RATIO_DEFAULT = 0.35
+    PREVIEW_WIDTH_RATIO_MIN = 0.15
+    PREVIEW_WIDTH_RATIO_MAX = 0.6
+    PREVIEW_WIDTH_RATIO_STEP = 0.05
 
     # Maps file_category (Sergeant::Utils) to the color pair set up in
     # Sergeant#apply_color_theme (pairs 7-10).
@@ -50,7 +53,7 @@ module Sergeant
 
       preview_enabled = @show_preview && max_x >= MIN_PREVIEW_TOTAL_WIDTH
       if preview_enabled
-        preview_width = [(max_x * PREVIEW_WIDTH_RATIO).to_i, MIN_PREVIEW_WIDTH].max
+        preview_width = [(max_x * @preview_width_ratio).to_i, MIN_PREVIEW_WIDTH].max
         list_width = max_x - preview_width - 1
       else
         preview_width = 0
