@@ -231,7 +231,6 @@ cd $(sgt --pwd /usr/local)
 | `u` | Unmark all items |
 | `n` | Create new file or directory |
 | `e` | Edit file with $EDITOR (or nano/nvim/vim) |
-| `v` | Preview file or archive contents |
 
 ### Other Commands
 

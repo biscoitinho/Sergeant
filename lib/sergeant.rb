@@ -113,8 +113,6 @@ class SergeantApp
           @last_preview_path = :unset
         when 'e'
           edit_file
-        when 'v'
-          preview_file
         when 32, ' '
           toggle_mark
         when 'c'
