@@ -120,8 +120,6 @@ class SergeantApp
           @preview_width_ratio = [@preview_width_ratio + step, Sergeant::Rendering::PREVIEW_WIDTH_RATIO_MAX].min
         when 'e'
           edit_file
-        when 'v'
-          preview_file
         when 32, ' '
           toggle_mark
         when 'c'
