@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.0.11] - 2026-08-24
+
+### Added
+- **Resizable side preview panel** - `[` / `]` shrink/grow the preview panel in 5% steps (clamped 15%-60% of terminal width), instead of a fixed 35% ratio
+
+### Changed
+- **Help modal (`m`) now scrolls** - if the key mapping list doesn't fit the terminal height, it scrolls with `j`/`k`/arrows and shows a scrollbar, instead of silently cutting off the bottom of the list
+- Removed the `v` key - it was bound to the exact same "preview file" action as `Enter`/`→`/`l` on a file, so it was a pure duplicate with no functionality behind it
+
 ## [1.0.10] - 2026-08-24
 
 ### Fixed
