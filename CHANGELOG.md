@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.0.10] - 2026-08-24
+
+### Fixed
+- **Help modal silently truncating its own key list** - `show_help_modal` capped its height at a hardcoded value that no longer fit all the key mappings, cutting off everything from the ownership toggle (`o`) onward - including `b`, `H`, `R`, and even `q`/`ESC` to quit - on any normal-sized terminal. The modal now sizes itself from the actual number of key mappings, so it never happens again.
+
 ## [1.0.9] - 2026-08-19
 
 ### Added
