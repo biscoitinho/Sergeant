@@ -16,7 +16,7 @@ Simple, fast, and elegant.
 - 🗂️  **Visual Directory Navigation** - See all directories and files at a glance
 - ⌨️  **Keyboard Driven** - Arrow keys, vim bindings (hjkl), and shortcuts
 - 🎨 **Color-Coded Display** - Directories in cyan; files colored by type (code, archives, media, executables)
-- 👀 **Live Preview Pane** - Text files and directory contents preview in a side panel as you move (press 'P' to toggle)
+- 👀 **Live Preview Pane** - Text files and directory contents preview in a side panel as you move (press 'P' to toggle), with syntax highlighting powered by [Rouge](https://github.com/rouge-ruby/rouge)
 - 📊 **Smart Scrolling** - Handles directories with hundreds of items
 - 🔍 **Git Branch Display** - Shows current git branch in header
 - 👤 **Ownership Toggle** - View file permissions and ownership (press 'o')

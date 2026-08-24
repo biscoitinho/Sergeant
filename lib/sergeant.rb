@@ -7,6 +7,7 @@ require 'curses'
 require 'pathname'
 require 'etc'
 require 'fileutils'
+require 'rouge'
 
 require_relative 'sergeant/version'
 require_relative 'sergeant/config'
@@ -184,6 +185,15 @@ class SergeantApp
     init_pair(8, Sergeant::Config.get_color(@config['media']), Curses::COLOR_BLACK)
     init_pair(9, Sergeant::Config.get_color(@config['code']), Curses::COLOR_BLACK)
     init_pair(10, Sergeant::Config.get_color(@config['executables']), Curses::COLOR_BLACK)
+
+    # Syntax highlighting for the preview panel - not user-configurable
+    # (yet), curses only gives us the 8 base colors to work with anyway.
+    init_pair(11, Curses::COLOR_MAGENTA, Curses::COLOR_BLACK) # keyword
+    init_pair(12, Curses::COLOR_GREEN, Curses::COLOR_BLACK)   # string
+    init_pair(13, Curses::COLOR_WHITE, Curses::COLOR_BLACK)   # comment (dimmed)
+    init_pair(14, Curses::COLOR_CYAN, Curses::COLOR_BLACK)    # number
+    init_pair(15, Curses::COLOR_YELLOW, Curses::COLOR_BLACK)  # function/class name
+    init_pair(16, Curses::COLOR_RED, Curses::COLOR_BLACK)     # error token
   end
 
   def search_files
@@ -384,7 +394,7 @@ class SergeantApp
     if item[:type] == :directory
       [:directory, build_directory_preview(item[:path])]
     elsif text_file?(item[:path])
-      [:text, build_text_preview(item[:path])]
+      [:text, build_text_preview(item[:path], item[:name])]
     else
       [:binary, []]
     end
@@ -405,18 +415,63 @@ class SergeantApp
     []
   end
 
-  def build_text_preview(path)
-    lines = []
+  def build_text_preview(path, filename)
+    raw_lines = []
 
     File.foreach(path, mode: 'rb') do |line|
       text = line.byteslice(0, PREVIEW_LINE_MAX_BYTES).to_s.chomp
-      lines << text.force_encoding('UTF-8').scrub('?').gsub("\t", '    ')
-      break if lines.length >= PREVIEW_LINE_LIMIT
+      raw_lines << text.force_encoding('UTF-8').scrub('?').gsub("\t", '    ')
+      break if raw_lines.length >= PREVIEW_LINE_LIMIT
     end
 
-    lines
+    highlight_lines(raw_lines, filename)
   rescue StandardError
     []
+  end
+
+  # Runs the preview text through Rouge and reassembles it into one array
+  # per line of [{text:, category:}, ...] segments, so the preview panel can
+  # paint each token in its own color. Falls back to plain (uncategorized)
+  # lines if Rouge can't make sense of the file - a highlighting bug should
+  # never be able to break the preview itself.
+  def highlight_lines(raw_lines, filename)
+    return [] if raw_lines.empty?
+
+    text = raw_lines.join("\n")
+    lexer = guess_lexer(filename, text)
+    tokens_to_lines(lexer, text)
+  rescue StandardError
+    raw_lines.map { |line| [{ text: line, category: nil }] }
+  end
+
+  def guess_lexer(filename, text)
+    Rouge::Lexer.guess(filename: filename, source: text)
+  rescue Rouge::Guesser::Ambiguous => e
+    e.alternatives.first || Rouge::Lexers::PlainText
+  rescue StandardError
+    Rouge::Lexers::PlainText
+  end
+
+  def tokens_to_lines(lexer, text)
+    lines = []
+    current = []
+
+    lexer.lex(text) do |token, value|
+      category = token_category(token.qualname)
+      pieces = value.split("\n", -1)
+
+      pieces.each_with_index do |piece, idx|
+        current << { text: piece, category: category } unless piece.empty?
+
+        next if idx == pieces.length - 1
+
+        lines << current
+        current = []
+      end
+    end
+
+    lines << current unless current.empty?
+    lines
   end
 
   def refresh_items
