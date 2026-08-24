@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.0.9] - 2026-08-19
+
+### Added
+- **Syntax highlighting in the side preview panel** - text file previews are now colorized (keywords, strings, comments, numbers, names) using [Rouge](https://github.com/rouge-ruby/rouge), which guesses the language from the filename
+
+### Fixed
+- **Starship / Ruby-version-manager compatibility** - `Gemfile` no longer declares `ruby '>= 2.7.0'`, a version-range constraint that tools which auto-detect a project's Ruby version from the Gemfile (e.g. Starship's prompt) can't parse, causing an `Unknown ruby interpreter version` error just from `cd`-ing into the project. The constraint is already enforced by `required_ruby_version` in the gemspec.
+
 ## [1.0.8] - 2026-08-19
 
 ### Fixed
